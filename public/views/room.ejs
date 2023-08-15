@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room</title>
+    <link rel="stylesheet" type="text/css" href="/css/room.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="top-bar">
+        <div id = 'username' class="username"><%= username %></div>
+    </div>
+    <div class="content">
+        <div class="message-box">
+            <!-- Messages will be displayed here -->
+        </div>
+        <div class="input-box">
+            <textarea class="message-input" id="message-input" placeholder="Type your message"></textarea>
+            <button id='send-button' class="send-button">Send</button>
+        </div>
+        <p id="roomId" hidden data-roomid="<%= roomId %>"></p>
+    </div>
+    <script src="/js/room.js"></script>
+</body>
+</html>

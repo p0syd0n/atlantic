@@ -1,0 +1,75 @@
+/* room.css */
+
+/* Apply some general styling */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Style for the top bar */
+.top-bar {
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.username {
+  margin-right: 20px;
+}
+
+/* Style for the main content */
+.content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: 100vh;
+  background-color: #f4f4f4;
+  max-height: calc(100vh - 150px);
+}
+
+.message-box {
+  flex: 1;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
+  max-height: calc(100vh - 150px); /* Adjust as needed */
+  overflow-y: auto;
+}
+
+.input-box {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: none;
+}
+
+.send-button {
+  background-color: #0066cc;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-left: 10px;
+}
+
+.send-button:hover {
+  background-color: #0052a3;
+}

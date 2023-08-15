@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Rooms</title>
+    <link rel="stylesheet" type="text/css" href="/css/main.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="username"><%= username %></div>
+    </div>
+    <div class="content">
+      <div class="rooms">
+        <h2>Chat Rooms</h2>
+        <ul>
+          <% rooms.forEach(room => { %>
+            <li>
+              <a href="/room?roomId=<%= room.id %>" class="<%= room.password === 'none' ? 'normal-room' : 'private-room' %>">
+                <%= room.name %>
+              </a>
+            </li>
+          <% }); %>
+        </ul>
+      </div>
+    </div>    
+</body>
+</html>
