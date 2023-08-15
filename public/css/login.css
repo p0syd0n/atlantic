@@ -48,3 +48,20 @@ button {
 button:hover {
   background-color: #0056b3; /* Darker blue on hover */
 }
+
+  /* Center the account creation link */
+.create-account {
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Style for the account creation link */
+.create-account a {
+  color: #0066cc;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.create-account a:hover {
+  color: #0052a3;
+}

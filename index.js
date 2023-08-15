@@ -52,6 +52,11 @@ function executeSQL(sql) {
   });
 }
 
+async function addRoom(name, password) {
+  let response = await executeSQL(`INSERT INTO atlantic.rooms (name, password) VALUES ('${name}', '${password}');`)
+  return response;
+}
+
 async function addUser(username, password) {
   let hashedPass = hash(password);
   let response = await executeSQL(`INSERT INTO atlantic.users (username, password) VALUES ('${username}', '${hashedPass}')`);
@@ -176,6 +181,16 @@ app.post('/executeLogin', async (req, res) => {
       }
     }
 });
+
+app.post('/executeCreateAccount', (req, res) => {
+  let { username, password } = req.body;
+  addUser(username, password);
+  res.redirect('/login');
+});
+
+app.get('/create_account', (req, res) => {
+  res.render('create_account');
+})
 
 // Set up socket.io connections
 io.on('connection', (socket) => {
