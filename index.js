@@ -169,15 +169,17 @@ app.post('/executeLogin', async (req, res) => {
     for (const user of users) {
       let currentUserHashedPass = hash(password)
       if (user.username == username) {
+        console.log('usernames match')
         if (user.password == currentUserHashedPass) {
+          console.log('passwrds match')
           req.session.username = username;
           req.session.authenticatedFor = [];
           res.redirect('/');
+          return;
         } else {
-          res.redirect('/login')
+          res.redirect('/login');
+          return;
         }
-      } else {
-        res.redirect('/login')
       }
     }
 });

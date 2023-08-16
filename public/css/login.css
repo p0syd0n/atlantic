@@ -1,13 +1,14 @@
+/* Apply some general styling */
 body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  background-color: #121212; /* Dark background color */
-  color: #fff;
+  background-color: #f4f4f4; /* Light background color */
+  color: #333;
 }
 
 .login-container {
-  background-color: #333; /* Darker container color */
+  background-color: #f9f9f9; /* Lighter container color */
   width: 300px;
   padding: 20px;
   border-radius: 10px;
@@ -31,8 +32,8 @@ input {
   margin: 5px 0;
   border: none;
   border-radius: 5px;
-  background-color: #444; /* Dark input background */
-  color: #fff;
+  background-color: #f0f0f0; /* Light input background */
+  color: #333;
 }
 
 button {
@@ -49,7 +50,7 @@ button:hover {
   background-color: #0056b3; /* Darker blue on hover */
 }
 
-  /* Center the account creation link */
+/* Center the account creation link */
 .create-account {
   text-align: center;
   margin-top: 20px;

@@ -1,0 +1,136 @@
+/* Apply some general styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #333; /* Dark background color for dark mode */
+    color: #fff; /* Light text color for dark mode */
+}
+
+/* Style for the top bar */
+.top-bar {
+    background-color: #111; /* Darker background color for top bar */
+    color: #fff;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Style for the username link */
+.username-link {
+    color: #007bff; /* Blue link color */
+    text-decoration: none;
+    transition: color 0.3s;
+    cursor: pointer;
+}
+
+.username-link:hover {
+    color: #0056b3; /* Darker blue on hover */
+}
+
+/* Style for the blurred background when modal is open */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black */
+    z-index: 1;
+    display: none;
+}
+
+/* Style for the modal content */
+.settings-modal {
+    /* Your existing styles for modal container */
+    /* Add more styles for appearance, padding, etc. */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #333; /* Darker background color for modal */
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+    display: none;
+}
+
+/* Style for the close button in the modal */
+#close-modal {
+    background-color: #ccc;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#settings-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#settings-form label {
+    margin-top: 10px;
+}
+
+#settings-form input[type="text"],
+
+#settings-form input[type="password"] {
+    width: calc(100% - 40px); /* Subtract 40px to create equal margins */
+    margin: 5px auto; /* Equal margins on left and right */
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background-color: #444; /* Darker gray input background for dark mode */
+    color: #fff; /* Light text color for dark mode */
+}
+
+#settings-form button {
+    background-color: #007bff; /* Blue button color for dark mode */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 15px;
+}
+
+#settings-form button:hover {
+    background-color: #0056b3; /* Darker blue button color for hover */
+}
+
+#slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    color: #bbb; /* Light gray text color for dark mode */
+}
+
+/* Style for radio buttons */
+#settings-form fieldset {
+    border: none;
+    margin: 10px 0;
+    padding: 0;
+}
+
+#settings-form legend {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #fff; /* Light text color for dark mode */
+}
+
+#settings-form label {
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+    cursor: pointer;
+    color: #fff; /* Light text color for dark mode */
+}
+
+#settings-form input[type="radio"] {
+    margin-right: 5px;
+}
+
+/* Add more styles for the form and modal content if needed */

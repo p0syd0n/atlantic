@@ -6,9 +6,7 @@
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <div class="top-bar">
-        <div id = 'username' class="username"><%= username %></div>
-    </div>
+    <%- include('topbar.ejs') %>
     <div class="content">
         <div class="message-box">
             <!-- Messages will be displayed here -->
