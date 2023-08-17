@@ -315,7 +315,7 @@ app.post('/executeLogin', async (req, res) => {
           req.session.hashedPassword = user.password;
           req.session.encryptedPassword = encrypt(user.password);
           req.session.admin = user.admin
-          req.session.ip = req.headers['x-forwarded-for']; //broken
+          req.session.ip = req.headers['x-forwarded-for'].split(", ")[0]; //broken
           req.session.nick = username;
           req.session.owner = user.owner;
           console.log("ip: "+req.session.ip)
