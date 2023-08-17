@@ -2,7 +2,11 @@
 <html>
 <head>
     <title>Chat Rooms</title>
-    <link rel="stylesheet" type="text/css" href="/css/main.css">
+    <% if (theme === 'light') { %>
+      <link rel="stylesheet" type="text/css" href="/css/main.css">
+    <% } else { %>
+        <link rel="stylesheet" type="text/css" href="/css/dark/dark_main.css">
+    <% } %>
 </head>
 <body>
     <!-- <div class="top-bar">

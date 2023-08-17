@@ -1,104 +1,114 @@
-/* styles.css */
-
 /* Apply some general styling */
+
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #1e1e1e; /* Dark background color */
-    color: #fff; /* Light text color */
-  }
-  
-  /* Style for the top bar */
-  .top-bar {
-    background-color: #333;
-    color: #fff;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  .username {
-    margin-right: 20px;
-  }
-  
-  /* Style for the main content */
-  .content {
-    padding: 20px;
-  }
-  
-  /* Style for the list of chat rooms */
-  .rooms {
-    background-color: #252525; /* Slightly lighter dark background color */
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .rooms h2 {
-    margin-bottom: 10px;
-  }
-  
-  .rooms ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .rooms li {
-    margin-bottom: 10px;
-  }
-  
-  .normal-room {
-    color: #fff; /* Light text color */
-    text-decoration: none;
-    transition: color 0.3s;
-    position: relative;
-  }
-  
-  .normal-room::after {
-    content: "Public";
-    color: #999;
-    font-size: 0.8em;
-    position: absolute;
-    top: 50%;
-    right: -70px; /* Adjust this value for spacing */
-    transform: translateY(-50%);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  
-  .normal-room:hover {
-    color: #0066cc;
-  }
-  
-  .normal-room:hover::after {
-    opacity: 1;
-  }
-  
-  .private-room {
-    color: red;
-    text-decoration: none;
-    transition: color 0.3s;
-    position: relative;
-  }
-  
-  .private-room::after {
-    content: "Private";
-    color: #999;
-    font-size: 0.8em;
-    position: absolute;
-    top: 50%;
-    right: -70px; /* Adjust this value for spacing */
-    transform: translateY(-50%);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  
-  .private-room:hover {
-    color: #0066cc;
-  }
-  
-  .private-room:hover::after {
-    opacity: 1;
-  }
-  
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #1e1e1e; /* Dark background color */
+  color: #fff; /* Light text color */
+  display: flex; /* Use flexbox to fill the viewport */
+  flex-direction: column; /* Stack children vertically */
+  min-height: 100vh; /* Ensure body takes at least the viewport height */
+}
+
+html {
+  margin: 0px;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Style for the top bar */
+.top-bar {
+  background-color: #252525; /* Darker background color for top bar */
+  color: #fff;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.username {
+  margin-right: 20px;
+}
+
+/* Style for the main content */
+.content {
+  background-color: #1e1e1e; /* Dark background color for content area */
+  padding: 20px;
+}
+
+/* Style for the list of chat rooms */
+.rooms {
+  background-color: #252525; /* Slightly lighter dark background color */
+  padding: 20px;
+  /* border-radius: 5px; */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 100vh; /* Set minimum height to 100% of my viewport height:854.5px */
+}
+
+.rooms h2 {
+  margin-bottom: 10px;
+}
+
+.rooms ul {
+  list-style: none;
+  padding: 0;
+}
+
+.rooms li {
+  margin-bottom: 10px;
+}
+
+.normal-room {
+  color: #fff; /* Light text color */
+  text-decoration: none;
+  transition: color 0.3s;
+  position: relative;
+}
+
+.normal-room::after {
+  content: "Public";
+  color: #999;
+  font-size: 0.8em;
+  position: absolute;
+  top: 50%;
+  right: -70px; /* Adjust this value for spacing */
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.normal-room:hover {
+  color: #0066cc;
+}
+
+.normal-room:hover::after {
+  opacity: 1;
+}
+
+.private-room {
+  color: red;
+  text-decoration: none;
+  transition: color 0.3s;
+  position: relative;
+}
+
+.private-room::after {
+  content: "Private";
+  color: #999;
+  font-size: 0.8em;
+  position: absolute;
+  top: 50%;
+  right: -70px; /* Adjust this value for spacing */
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.private-room:hover {
+  color: #0066cc;
+}
+
+.private-room:hover::after {
+  opacity: 1;
+}

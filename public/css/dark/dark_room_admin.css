@@ -1,0 +1,111 @@
+/* room.css */
+/* 
+html {
+  overflow: hidden;
+} */
+/* Apply some general styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 5;
+    background-color: #1e1e1e; /* Dark background color */
+    color: #fff; /* Light text color */
+    overflow: hidden;
+  }
+  
+  /* Style for the top bar */
+  .top-bar {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .username {
+    margin-right: 20px;
+  }
+  
+  /* Style for the main content */
+  .content {
+    padding: 20px;
+    padding-bottom: 80px; /* Adjust this value as needed */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    height: 95vh;
+    background-color: #1e1e1e; /* Dark background color */
+    max-height: calc(100vh - 150px);
+    min-height: 100vh;
+  }
+  
+  .message-box {
+    flex: 1;
+    background-color: #252525; /* Slightly lighter dark background color */
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+    max-height: calc(100vh - 170px); /* Adjust as needed */
+    overflow-y: auto;
+  }
+  
+  .input-box {
+    display: flex;
+    align-items: center;
+    background-color: #252525; /* Slightly lighter dark background color */
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .message-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: none;
+    background-color: #333; /* Dark background color */
+    color: #fff; /* Light text color */
+  }
+  
+  .send-button {
+    background-color: #0066cc;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-left: 10px;
+  }
+  
+  .send-button:hover {
+    background-color: #0052a3;
+  }
+  .tooltip-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .tooltip {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: pre-wrap;
+    max-width: 300px;
+    z-index: 1;
+    display: none;
+  }
+  
+  .tooltip-container:hover .tooltip {
+    display: block;
+  }
+
+    .message:hover .tooltip {
+        display: block;
+    }

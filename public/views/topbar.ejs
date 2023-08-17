@@ -1,14 +1,14 @@
 <link rel="stylesheet" type="text/css" href="/css/topbar.css">
 <div class="top-bar">
     <div class="username">
-        <a class="username-link" id="open-settings-button">Username</a>
+        <a class="username-link" id="open-settings-button"><%= username %></a>
     </div>
 </div>
 <div class="modal-backdrop" id="modal-backdrop"></div>
 <div class="settings-modal" id="settings-modal">
     <div class="modal-content">
         <button id="close-modal">Close</button>
-        <form id="settings-form" autocomplete="off">
+        <form id="settings-form" autocomplete="off" action="/changeSettings" method="post">
             <label for="username">Username:</label>
             <input placeholder="<%= username %>" autoComplete="new-password" type="text" id="username" name="username">
             
@@ -18,22 +18,19 @@
             <fieldset>
                 <legend>Theme:</legend>
                 <label>
-                    <input type="radio" name="theme" value="dark">
+                    <input type="radio" name="theme" value="dark" <%- (theme == 'dark') ? 'checked' : '' %>>
                     Dark Mode
                 </label>
                 <label>
-                    <input type="radio" name="theme" value="light">
+                    <input type="radio" name="theme" value="light" <%- (theme == 'light') ? 'checked' : '' %>>
                     Light Mode
                 </label>
-            </fieldset>
-            
+            </fieldset>            
+
             <button type="submit">Save</button>
         </form>
     </div>
 </div>
 
-
-
-<p hidden><%= username %></p>
+<p id="sessionUsername" value="<%= username %>" hidden><%= username %></p>
 <script src="/js/topbar.js"></script>
-

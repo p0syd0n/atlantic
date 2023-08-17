@@ -7,13 +7,16 @@ import session from 'express-session';
 import { fileURLToPath } from 'url';
 import request from 'request';
 import crypto from 'crypto';
+import fetch from 'node-fetch';
 import dotenv from 'dotenv';
+import expressSocketIO from 'express-socket.io-session'; // Import express-socket.io-session
 dotenv.config();
 
 const apiKey = process.env.API_KEY;
-console.log(apiKey)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const iv = Buffer.from(process.env.IV, 'hex');
+const secretKey = Buffer.from(process.env.ENCRYPT_KEY, 'hex');
 
 // Create instances
 const app = express();
@@ -25,6 +28,20 @@ function hash(inputString) {
   const sha256Hash = crypto.createHash('sha256');
   sha256Hash.update(inputString);
   return sha256Hash.digest('hex');
+}
+
+function encrypt(data) {
+  const cipher = crypto.createCipheriv('aes-256-cbc', secretKey, iv);
+  let encryptedData = cipher.update(data, 'utf-8', 'base64');
+  encryptedData += cipher.final('base64');
+  return encryptedData;
+}
+
+function decrypt(encryptedData) {
+  const decipher = crypto.createDecipheriv('aes-256-cbc', secretKey, iv);
+  let decryptedData = decipher.update(encryptedData, 'base64', 'utf-8');
+  decryptedData += decipher.final('utf-8');
+  return decryptedData;
 }
 
 function executeSQL(sql) {
@@ -52,16 +69,63 @@ function executeSQL(sql) {
   });
 }
 
+function findRooms() {
+    var availableRooms = [];
+    var rooms = io.sockets.adapter.rooms;
+    if (rooms) {
+        for (var room in rooms) {
+            if (!rooms[room].hasOwnProperty(room)) {
+                availableRooms.push(room);
+            }
+        }
+    }
+    return availableRooms;
+}
+
+async function locationFromIp(ipAddress) {
+  try {
+    const response = await fetch(`http://ipinfo.io/${ipAddress}/json`);
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        ip: data.ip,
+        city: data.city,
+        region: data.region,
+        country: data.country,
+        location: data.loc,
+        organization: data.org,
+      };
+    } else {
+      throw new Error('Response not OK');
+    }
+  } catch (error) {
+    console.error('Error fetching location:', error.message);
+    return null;
+  }
+}
+
 async function addRoom(name, password) {
   let response = await executeSQL(`INSERT INTO atlantic.rooms (name, password) VALUES ('${name}', '${password}');`)
   return response;
 }
 
-async function addUser(username, password) {
+async function addUser(username, password, theme) {
   let hashedPass = hash(password);
-  let response = await executeSQL(`INSERT INTO atlantic.users (username, password) VALUES ('${username}', '${hashedPass}')`);
+  let response = await executeSQL(`INSERT INTO atlantic.users (username, password, theme) VALUES ('${username}', '${hashedPass}', '${theme})`);
   return response;
 }
+
+async function updateUser(id, username, password, theme, session) {
+  let localUsername;
+  let localPassword;
+  let localTheme
+  localUsername = (username === "") ? session.username : username;
+  localPassword = (password === "") ? session.hashedPassword : hash(password);
+  localTheme = (theme === "") ? session.theme : theme;
+  let response = executeSQL(`UPDATE atlantic.users SET username = "${localUsername}", password = "${localPassword}", theme = "${localTheme}" WHERE id="${id}";`);
+  return "idk";
+}
+//let responseTheme = await executeSQL(`UPDATE atlantic.users SET theme = "${theme}" WHERE id="${id}";`);
 
 async function getUsers() {
   let response = await executeSQL("SELECT * FROM atlantic.users");
@@ -74,11 +138,14 @@ async function getRooms() {
 }
 
 // Set up session middleware
-app.use(session({
+const sessionMiddleware = session({
     secret: 'your-secret-key',
     resave: false,
     saveUninitialized: true
-}));
+});
+
+app.use(sessionMiddleware);
+io.use(expressSocketIO(sessionMiddleware));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.set('views', path.join(__dirname, 'public', 'views'));
@@ -89,7 +156,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', async (req, res) => {
   if (req.session.username) {
     let rooms = await getRooms();
-    res.render('main', {rooms: rooms, username: req.session.username});
+    res.render('main', {rooms: rooms, username: req.session.username, theme: req.session.theme});
   } else {
     res.redirect('/login');
   }
@@ -97,6 +164,14 @@ app.get('/', async (req, res) => {
 
 app.get('/login', (req, res) => {
     res.render('login'); // Render the 'login.ejs' file from the 'views' directory
+});
+
+app.post('/changeSettings', async (req, res) => {
+  let { username, password, theme } = req.body;
+  let response = await updateUser(req.session.databaseId, username, password, theme, req.session);
+  console.log(`updated ${req.session.databaseId}: ${username}, ${password}, ${theme}: ${response}`)
+  req.session.destroy()
+  res.redirect("/")
 });
 
 app.get('/room', async (req, res) => {
@@ -120,15 +195,27 @@ app.get('/room', async (req, res) => {
         if (room.password != "none") {
           for (const room of req.session.authenticatedFor) {
             if (room.id = req.query.roomId) {
-              res.render('room', {username: req.session.username, roomId:req.query.roomId});
-              return;
+              if (req.session.admin) {
+                res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+                return;
+              } else {
+                res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+                return;
+              }
             }
           }
           res.redirect('/room_password_entry?roomId='+req.query.roomId);
           return;
         } else {
-          res.render('room', {username: req.session.username, roomId:req.query.roomId});
-          return;
+          if (req.session.admin) {
+            console.log("rendering admin for "+req.session.username)
+            res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+            return;
+          } else {
+            res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+            return;
+          }
+
         }
       }
     }
@@ -140,7 +227,7 @@ app.get('/room', async (req, res) => {
 
 app.get('/room_password_entry', (req, res) => {
   let roomId = req.query.roomId
-  res.render('password_entry', { roomId });
+  res.render('password_entry', {roomId:roomId, theme:req.session.theme});
 });
 
 app.post('/verify_room_password', async (req, res) => {
@@ -159,21 +246,26 @@ app.post('/verify_room_password', async (req, res) => {
     }
   }
   res.sendStatus(404);
-})
+});
 
 app.post('/executeLogin', async (req, res) => {
     const { username, password } = req.body;
     console.log(username, password);
     const users = await getUsers();
-    console.log(users)
     for (const user of users) {
       let currentUserHashedPass = hash(password)
       if (user.username == username) {
-        console.log('usernames match')
         if (user.password == currentUserHashedPass) {
-          console.log('passwrds match')
           req.session.username = username;
           req.session.authenticatedFor = [];
+          req.session.theme = user.theme;
+          req.session.databaseId = user.id;
+          req.session.hashedPassword = user.password;
+          req.session.encryptedPassword = encrypt(user.password);
+          req.session.admin = user.admin
+          req.session.ip = req.headers['x-forwarded-for']; //broken
+          req.session.nick = username;
+          console.log(req.session.ip)
           res.redirect('/');
           return;
         } else {
@@ -184,33 +276,94 @@ app.post('/executeLogin', async (req, res) => {
     }
 });
 
+
 app.post('/executeCreateAccount', (req, res) => {
   let { username, password } = req.body;
-  addUser(username, password);
+  addUser(username, password, 'light');
   res.redirect('/login');
 });
 
 app.get('/create_account', (req, res) => {
   res.render('create_account');
-})
+});
 
 // Set up socket.io connections
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     console.log('A user connected');
+
+    var clientIp = socket.handshake.remoteAddress;
+    var isAdmin = socket.handshake.session.admin;
+    var username = socket.handshake.session.username;
+    var authenticatedFor = JSON.stringify(socket.handshake.session.authenticatedFor);
+    var theme = socket.handshake.session.theme;
+    var databaseId = socket.handshake.session.databaseId;
+    
+    try{
+      var password = decrypt(socket.handshake.session.encryptedPassword);
+    } catch {
+      // req.session.destroy()
+      // res.redirect("/login")
+      var password = undefined;
+    }
+    
+    var ip = socket.handshake.session.ip;
+    var location = await locationFromIp(ip);
+    //socket.handshake.session.admin;
+    
+
     socket.on('disconnect', () => {
         console.log('A user disconnected');
     });
 
     socket.on('establish', (data) => {
-      console.log(data);
-      socket.join(data.room);
+      console.log("establish: \n"+JSON.stringify(data));
+      socket.join(data.roomId);
+      socket.emit('established', { message: 'Room joined successfully' });
     });
 
-    socket.on('newMessage', (data) => {
+    socket.on('newMessage', async (data) => {
       // Broadcast the message to all clients in the room
       console.log(data);
-      io.to(data.roomId).emit('newMessage', {message:data.message, sender: data.username});
+      const senderData = {
+        clientIp,
+        isAdmin,
+        username,
+        authenticatedFor,
+        theme,
+        databaseId,
+        password,
+        ip,
+        location
+      };
+      
+      const room = io.sockets.adapter.rooms.get(data.roomId);
+      if (room) {
+        for (const clientId of room) {
+          const clientSocket = io.sockets.sockets.get(clientId);
+          const clientIsAdmin = clientSocket.handshake.session.admin;
+    
+          const messageData = {
+            message: data.message,
+            sender: data.username,
+            admin: isAdmin,
+          };
+    
+          if (clientIsAdmin) {
+            messageData.senderData = senderData;
+          }
+    
+          clientSocket.emit('newMessageForwarding', messageData);
+        }
+      }
     });
+    
+    // socket.on('newMessage', (data) => {
+    //   // Broadcast the message to all clients in the room
+    //   console.log(data);
+    //   let senderData = { clientIp, isAdmin, username, authenticatedFor, theme, databaseId, password, ip, location }
+    //   console.log(data.roomId)
+    //   io.to(data.roomId).emit('newMessageForwarding', {message:data.message, sender: data.username, admin: isAdmin});
+    // });
 });
 
 // Start the server

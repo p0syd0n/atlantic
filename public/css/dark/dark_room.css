@@ -1,12 +1,16 @@
 /* room.css */
-
+/* 
+html {
+  overflow: hidden;
+} */
 /* Apply some general styling */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 0;
+    padding: 5;
     background-color: #1e1e1e; /* Dark background color */
     color: #fff; /* Light text color */
+    overflow: hidden;
   }
   
   /* Style for the top bar */
@@ -25,12 +29,14 @@ body {
   /* Style for the main content */
   .content {
     padding: 20px;
+    padding-bottom: 80px; /* Adjust this value as needed */
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    height: 100vh;
+    height: 95vh;
     background-color: #1e1e1e; /* Dark background color */
     max-height: calc(100vh - 150px);
+    min-height: 100vh;
   }
   
   .message-box {
@@ -40,7 +46,7 @@ body {
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 10px;
-    max-height: calc(100vh - 150px); /* Adjust as needed */
+    max-height: calc(100vh - 170px); /* Adjust as needed */
     overflow-y: auto;
   }
   
