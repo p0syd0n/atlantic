@@ -34,6 +34,7 @@ body {
     flex-direction: column;
     align-items: stretch;
     height: 95vh;
+    color: #ffffff;
     background-color: #1e1e1e; /* Dark background color */
     max-height: calc(100vh - 150px);
     min-height: 100vh;
@@ -43,6 +44,7 @@ body {
     flex: 1;
     background-color: #252525; /* Slightly lighter dark background color */
     padding: 10px;
+    color: #ffffff;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 10px;

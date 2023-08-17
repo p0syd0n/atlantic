@@ -1,0 +1,116 @@
+/* styles.css */
+
+/* Apply some general styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Style for the main content */
+  .content {
+    padding: 20px;
+  }
+  
+  /* Style for the list of chat rooms */
+  .rooms {
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .rooms h2 {
+    margin-bottom: 10px;
+  }
+  
+  .rooms ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .rooms li {
+    margin-bottom: 10px;
+  }
+  .normal-room {
+    color: black;
+    text-decoration: none;
+    transition: color 0.3s;
+    position: relative;
+  }
+  
+  .normal-room::after {
+    content: attr(data-password);
+    color: #999;
+    font-size: 0.8em;
+    position: absolute;
+    top: 50%;
+    right: -70px; /* Adjust this value for spacing */
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .normal-room:hover {
+    color: #0066cc;
+  }
+  
+  .normal-room:hover::after {
+    opacity: 1;
+  }
+  
+  .private-room {
+    color: red;
+    text-decoration: none;
+    transition: color 0.3s;
+    position: relative;
+  }
+  
+  .private-room::after {
+    content: attr(data-password);
+    color: #999;
+    font-size: 0.8em;
+    position: absolute;
+    top: 50%;
+    right: -110px; /* Adjust this value for spacing */
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .private-room:hover {
+    color: #0066cc;
+  }
+  
+  .private-room:hover::after {
+    opacity: 1;
+  }
+
+  .room-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .room-icon img {
+    width: 0.8em; /* Adjust the size as needed */
+    height: 0.8em; /* Adjust the size as needed */
+    margin-right: 5px; /* Adjust the spacing as needed */
+  }
+
+  .add-room {
+    margin-bottom: 20px;
+  }
+  
+  .add-room-button {
+    color: #fff;
+    background-color: #0066cc;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+  }
+  
+  .add-room-button:hover {
+    background-color: #0052a3;
+  }

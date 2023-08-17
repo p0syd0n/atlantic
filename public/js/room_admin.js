@@ -1,5 +1,5 @@
 // Connect to the Socket.IO server
-const socket = io();
+const socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
 
 // Function to emit a new message
 function emitMessage(message) {
@@ -7,14 +7,18 @@ function emitMessage(message) {
 }
 
 // Function to add a new message to the UI
-function addMessage(message, senderData) {
+function addMessage(message, senderData, prefix) {
   const messageBox = document.querySelector('.message-box');
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
 
   // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
-
+  if (prefix == "[ADMIN]") {
+    messageElement.style.color = "blue !important";
+  } else if (prefix == "[OWNER]") {
+    messageElement.style.color = "red !important";
+  }
   // Create a horizontal line separator element
   const separatorElement = document.createElement('hr');
 
@@ -38,32 +42,52 @@ function addMessage(message, senderData) {
   messageBox.appendChild(separatorElement);
 }
 
+// Function to handle sending messages
+function sendMessage() {
+  const messageInput = document.getElementById('message-input');
+  const message = messageInput.value;
+  if (message) {
+    if (message === "/exit") {
+      window.location = "/";
+    } else {
+      emitMessage(message);
+      messageInput.value = '';
+      messageInput.focus(); // Auto-select the input box
+    }
+  }
+}
+
 // Event listener for socket connection
 socket.on('connect', () => {
   console.log('Socket connected');
 
   // Emit the 'establish' event once the socket is connected
-  socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
+  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
+  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
+  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
+  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
+  
   // Event listener for receiving new messages
   socket.on('newMessageForwarding', (data) => {
     console.log(data);
-    let prefix = "";
+    let prefix;
     if (data.admin) {
       prefix = "[ADMIN] ";
-    } else if (data.owner) {
+    } 
+    if (data.owner) {
       prefix = "[OWNER] ";
     }
-    addMessage(prefix + data.sender + ': ' + data.message, data.senderData);
+    addMessage(prefix + data.sender + ': ' + data.message, data.senderData, prefix);
   });
 
-  // Event listener for sending messages
-  document.getElementById('send-button').addEventListener('click', () => {
-    const messageInput = document.getElementById('message-input');
-    const message = messageInput.value;
-    if (message) {
-      emitMessage(message);
-      messageInput.value = '';
+  // Event listener for sending messages on button click
+  document.getElementById('send-button').addEventListener('click', sendMessage);
+
+  // Event listener for sending messages on Enter key press
+  document.getElementById('message-input').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault(); // Prevent creating a new line
+      sendMessage(); // Send the message
     }
   });
 });

@@ -69,17 +69,14 @@ function executeSQL(sql) {
   });
 }
 
-function findRooms() {
-    var availableRooms = [];
-    var rooms = io.sockets.adapter.rooms;
-    if (rooms) {
-        for (var room in rooms) {
-            if (!rooms[room].hasOwnProperty(room)) {
-                availableRooms.push(room);
-            }
-        }
+async function idFromName(name) {
+  let rooms = await getRooms();
+  for (let room of rooms) {
+    if (room.name == name) {
+      return room.id;
     }
-    return availableRooms;
+  }
+  return 404;
 }
 
 async function locationFromIp(ipAddress) {
@@ -111,7 +108,12 @@ async function addRoom(name, password) {
 
 async function addUser(username, password, theme) {
   let hashedPass = hash(password);
-  let response = await executeSQL(`INSERT INTO atlantic.users (username, password, theme) VALUES ('${username}', '${hashedPass}', '${theme})`);
+  let response = await executeSQL(`INSERT INTO atlantic.users (username, password, theme, admin, owner) VALUES ('${username}', '${hashedPass}', '${theme}', false, false)`);
+  return response;
+}
+
+async function removeRoom(roomId) {
+  let response = await executeSQL(`DELETE FROM atlantic.rooms WHERE id="${roomId}"`)
   return response;
 }
 
@@ -156,7 +158,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', async (req, res) => {
   if (req.session.username) {
     let rooms = await getRooms();
-    res.render('main', {rooms: rooms, username: req.session.username, theme: req.session.theme});
+    if (req.session.admin) {
+      res.render('main_admin', {rooms: rooms, username: req.session.username, theme: req.session.theme});
+    } else {
+      res.render('main', {rooms: rooms, username: req.session.username, theme: req.session.theme});
+    }
   } else {
     res.redirect('/login');
   }
@@ -166,12 +172,50 @@ app.get('/login', (req, res) => {
     res.render('login'); // Render the 'login.ejs' file from the 'views' directory
 });
 
+app.get('/create_room', (req, res) => {
+  if (req.session.admin) {
+    res.render('create_room_admin', {theme: req.session.theme, username: req.session.username});
+  } else {
+    res.render('create_room', {theme: req.session.theme, username: req.session.username});
+  }
+});
+
+app.post('/executeCreateRoom', async (req, res) => {
+  if (req.session.admin) {
+    let { roomName, roomPassword} = req.body;
+    console.log(roomName, roomPassword);
+    await addRoom(roomName, roomPassword);
+    //let roomId = await idFromName(name);
+    res.redirect("/")
+  } else{
+    let { roomName, roomPassword } = req.body;
+    await addRoom(roomName, roomPassword);
+    let roomId = await idFromName(roomName);
+    res.redirect('/room?roomId'+roomId)
+  }
+});
+
+app.get('/deleteRoom', async (req, res) => {
+  if (req.session.admin) {
+    let response = await removeRoom(req.query.roomId);
+    console.log(`deleted ${req.query.roomId}: ${JSON.stringify(response, null, 2)}`)
+    res.redirect("/")
+  } else{
+    res.redirect("/")
+  }
+});
+
 app.post('/changeSettings', async (req, res) => {
-  let { username, password, theme } = req.body;
-  let response = await updateUser(req.session.databaseId, username, password, theme, req.session);
-  console.log(`updated ${req.session.databaseId}: ${username}, ${password}, ${theme}: ${response}`)
-  req.session.destroy()
-  res.redirect("/")
+  if (req.session.username) {
+    let { username, password, theme } = req.body;
+    let response = await updateUser(req.session.databaseId, username, password, theme, req.session);
+    console.log(`updated ${req.session.databaseId}: ${username}, ${password}, ${theme}: ${response}`);
+    req.session.destroy();
+    res.redirect("/");
+  } else {
+    res.redirect("/login");
+  }
+
 });
 
 app.get('/room', async (req, res) => {
@@ -215,7 +259,6 @@ app.get('/room', async (req, res) => {
             res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
             return;
           }
-
         }
       }
     }
@@ -226,26 +269,35 @@ app.get('/room', async (req, res) => {
 });
 
 app.get('/room_password_entry', (req, res) => {
-  let roomId = req.query.roomId
-  res.render('password_entry', {roomId:roomId, theme:req.session.theme});
+  if (req.session.username) {
+    let roomId = req.query.roomId;
+    res.render('password_entry', {roomId:roomId, theme:req.session.theme});
+  } else {
+    res.redirect("/login");
+  }
+
 });
 
-app.post('/verify_room_password', async (req, res) => {
-  let { password } = req.body;
-  let rooms = await getRooms()
-  for (const room of rooms) {
-    if (room.id == req.query.roomId) {
-      if (room.password == password) {
-        req.session.authenticatedFor.push(room);
-        res.redirect('/room?roomId='+req.query.roomId);
-        return;
-      } else {
-        res.redirect('/room_password_entry?roomId='+req.query.roomId);
-        return;
+app.post('/verifyRoomPassword', async (req, res) => {
+  if (req.session.username) {
+    let { password } = req.body;
+    let rooms = await getRooms()
+    for (const room of rooms) {
+      if (room.id == req.query.roomId) {
+        if (room.password == password) {
+          req.session.authenticatedFor.push(room);
+          res.redirect('/room?roomId='+req.query.roomId);
+          return;
+        } else {
+          res.redirect('/room_password_entry?roomId='+req.query.roomId);
+          return;
+        }
       }
     }
+    res.sendStatus(404);
+  } else {
+    res.redirect("/login")
   }
-  res.sendStatus(404);
 });
 
 app.post('/executeLogin', async (req, res) => {
@@ -265,7 +317,8 @@ app.post('/executeLogin', async (req, res) => {
           req.session.admin = user.admin
           req.session.ip = req.headers['x-forwarded-for']; //broken
           req.session.nick = username;
-          console.log(req.session.ip)
+          req.session.owner = user.owner;
+          console.log("ip: "+req.session.ip)
           res.redirect('/');
           return;
         } else {
@@ -274,6 +327,7 @@ app.post('/executeLogin', async (req, res) => {
         }
       }
     }
+    res.redirect("/login")
 });
 
 
@@ -290,6 +344,8 @@ app.get('/create_account', (req, res) => {
 // Set up socket.io connections
 io.on('connection', async (socket) => {
     console.log('A user connected');
+    socket.join(socket.handshake.query.roomId);
+    socket.emit('established', { message: 'Room joined successfully' });
 
     var clientIp = socket.handshake.remoteAddress;
     var isAdmin = socket.handshake.session.admin;
@@ -297,6 +353,7 @@ io.on('connection', async (socket) => {
     var authenticatedFor = JSON.stringify(socket.handshake.session.authenticatedFor);
     var theme = socket.handshake.session.theme;
     var databaseId = socket.handshake.session.databaseId;
+    var owner = socket.handshake.session.owner;
     
     try{
       var password = decrypt(socket.handshake.session.encryptedPassword);
@@ -346,12 +403,12 @@ io.on('connection', async (socket) => {
             message: data.message,
             sender: data.username,
             admin: isAdmin,
+            owner: owner
           };
     
           if (clientIsAdmin) {
             messageData.senderData = senderData;
           }
-    
           clientSocket.emit('newMessageForwarding', messageData);
         }
       }

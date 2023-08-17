@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Rooms</title>
+    <% if (theme === 'light') { %>
+      <link rel="stylesheet" type="text/css" href="/css/main_admin.css">
+    <% } else { %>
+        <link rel="stylesheet" type="text/css" href="/css/dark/dark_main.css">
+    <% } %>
+</head>
+<body>
+    <%- include('topbar.ejs') %>
+    <div class="content">
+      <div class="add-room">
+        <a href="/create_room" class="add-room-button">+ Add Room</a>
+      </div>
+      <div class="rooms">
+        <h2>Chat Rooms</h2>
+        <ul>
+          <% rooms.forEach(room => { %>
+            <li>
+              <div class="room-item">
+                <a href="/room?roomId=<%= room.id %>"
+                   class="<%= room.password === 'none' ? 'room-link normal-room' : 'room-link private-room' %>"
+                   data-password="<%= room.password === 'none' ? 'Public' : 'Private; ' + room.password %>">
+                  <%= room.name %>
+                </a>
+                <div class="room-icon">
+                  <a href="/deleteRoom?roomId=<%= room.id %>">
+                    <img src="/images/delete_room.png" alt="Delete Room">
+                  </a>
+                </div>
+              </div>
+            </li>
+          <% }); %>
+        </ul>
+      </div>
+    </div>    
+</body>
+</html>
