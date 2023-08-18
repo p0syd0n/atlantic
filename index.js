@@ -11,7 +11,6 @@ import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session'; // Import express-socket.io-session
 dotenv.config();
-//test commit
 
 const apiKey = process.env.API_KEY;
 const __filename = fileURLToPath(import.meta.url);
