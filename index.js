@@ -8,6 +8,8 @@ import { fileURLToPath } from 'url';
 import request from 'request';
 import crypto from 'crypto';
 import fetch from 'node-fetch';
+import marked from 'marked';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session'; // Import express-socket.io-session
 dotenv.config();
@@ -17,6 +19,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const iv = Buffer.from(process.env.IV, 'hex');
 const secretKey = Buffer.from(process.env.ENCRYPT_KEY, 'hex');
+const legalDocuments = ['legal_1.md', 'legal_2.md', 'legal_3.md'];
 
 // Create instances
 const app = express();
@@ -339,6 +342,33 @@ app.post('/executeCreateAccount', (req, res) => {
 
 app.get('/create_account', (req, res) => {
   res.render('create_account');
+});
+
+app.get('/help', (req, res) => {
+  const markdownFilePath = path.join(__dirname, 'public', 'views', 'help.md');
+  fs.readFile(markdownFilePath, 'utf-8', (err, markdownContent) => {
+    if (err) {
+      console.error('Error reading markdown file:', err);
+      res.sendStatus(500);
+    } else {
+      const htmlContent = marked(markdownContent);
+      res.render('markdown_view', { content: htmlContent });
+    }
+  });
+});
+
+app.get('/legal', (req, res) => {
+  const randomLegalIndex = Math.floor(Math.random() * legalDocuments.length);
+  const legalFilePath = path.join(__dirname, 'public', 'views', legalDocuments[randomLegalIndex]);
+  fs.readFile(legalFilePath, 'utf-8', (err, legalContent) => {
+    if (err) {
+      console.error('Error reading legal file:', err);
+      res.sendStatus(500);
+    } else {
+      const htmlContent = marked(legalContent);
+      res.render('markdown_view', { content: htmlContent });
+    }
+  });
 });
 
 // Set up socket.io connections
