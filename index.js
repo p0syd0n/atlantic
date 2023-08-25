@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import request from 'request';
 import crypto from 'crypto';
 import fetch from 'node-fetch';
-import marked from 'marked';
+import { marked } from 'marked';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session'; // Import express-socket.io-session
