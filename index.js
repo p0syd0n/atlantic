@@ -318,7 +318,11 @@ app.post('/executeLogin', async (req, res) => {
           req.session.hashedPassword = user.password;
           req.session.encryptedPassword = encrypt(user.password);
           req.session.admin = user.admin
-          req.session.ip = req.headers['x-forwarded-for'].split(", ")[0]; //broken
+          try {
+            req.session.ip = req.headers['x-forwarded-for'].split(", ")[0]; 
+          } catch (error) {
+            console.log( `error with ip getting: \n ${error}`);
+          }
           req.session.nick = username;
           req.session.owner = user.owner;
           console.log("ip: "+req.session.ip)
@@ -352,7 +356,7 @@ app.get('/help', (req, res) => {
       res.sendStatus(500);
     } else {
       const htmlContent = marked(markdownContent);
-      res.render('markdown_view', { content: htmlContent });
+      res.send(htmlContent);
     }
   });
 });
@@ -366,10 +370,11 @@ app.get('/legal', (req, res) => {
       res.sendStatus(500);
     } else {
       const htmlContent = marked(legalContent);
-      res.render('markdown_view', { content: htmlContent });
+      res.send(htmlContent);
     }
   });
 });
+
 
 // Set up socket.io connections
 io.on('connection', async (socket) => {
