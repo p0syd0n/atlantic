@@ -1,5 +1,5 @@
+const socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML, dm: true} });
 // Connect to the Socket.IO server
-const socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} });
 
 // Function to emit a new message
 function emitMessage(message) {
@@ -7,16 +7,10 @@ function emitMessage(message) {
 }
 
 // Function to add a new message to the UI
-function addMessage(message, prefix) {
+function addMessage(message) {
   const messageBox = document.querySelector('.message-box');
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
-  if (prefix == "[ADMIN]") {
-    messageElement.style.color = "blue !important";
-  } else if (prefix == "[OWNER]") {
-    messageElement.style.color = "red !important";
-  }
-  
   messageElement.textContent = message.replace("\n", "<br>");;
   messageBox.appendChild(messageElement);
 }
@@ -40,30 +34,22 @@ function sendMessage() {
 // Event listener for socket connection
 socket.on('connect', () => {
   console.log('Socket connected');
-
-  // Emit the 'establish' event once the socket is connected
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-    
   // Event listener for receiving new messages
 
   socket.on('newMessageForwarding', (data) => {
     console.log(data);
-    let prefix = "";
-    if (data.admin) {
-      prefix = "[ADMIN] ";
-    } 
-    if (data.owner) {
-      prefix = "[OWNER] ";
-    }
-    addMessage(prefix + data.sender + ': ' + data.message, prefix);
+    addMessage(data.sender + ': ' + data.message);
   });
-  
+
   socket.on('info', (data) => {
     console.log('info: '+data);
   });
+
+  socket.on('loadPreviousMessages', (data) => {
+    for (const message of data.messages) {
+        addMessage(`${message.from}: ${message.message}`)
+    }
+  })
 
   // Event listener for sending messages on button click
   document.getElementById('send-button').addEventListener('click', sendMessage);

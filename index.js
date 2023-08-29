@@ -82,6 +82,48 @@ async function idFromName(name) {
   return 404;
 }
 
+async function roomNameFromOccupants(occupants) {
+  const username1 = occupants[0];
+  const username2 = occupants[1];
+
+  let i = 0;
+  while (i < Math.min(username1.length, username2.length)) {
+    if (username1[i] !== username2[i]) {
+      break;
+    }
+    i++;
+  }
+
+  const isFirstLetterFirstResult = isFirstLetterFirst(username1[i], username2[i]);
+
+  if (isFirstLetterFirstResult) {
+    return `DM_${username1}_${username2}`;
+  } else {
+    return `DM_${username2}_${username1}`;
+  }
+}
+
+function isFirstLetterFirst(letter1, letter2) {
+  const letterList = "abcdefghijklmnopqrstuvwxyz1234567890-=_+[]\\{}|;':\",./!@#$%^&*()<>?".split("");
+  const index1 = letterList.indexOf(letter1);
+  const index2 = letterList.indexOf(letter2);
+  if (index1 === -1 || index2 === -1) {
+    throw new Error("Invalid input letters");
+  }
+  return index1 < index2;
+}
+async function recordMessage(room_name_id, sender, target = null, content) {
+  let response;
+  console.log(room_name_id);
+  if (room_name_id.split("_")[0] === "DM") {
+    response = await executeSQL(`INSERT INTO atlantic.direct_messages (\`to\`, \`from\`, content, name) VALUES ('${target}', '${sender}', '${content}', '${room_name_id}');`);
+  } else {
+    response = await executeSQL(`INSERT INTO atlantic.messages (\`from\`, content, roomId) VALUES ('${sender}', '${content}', '${room_name_id}');`);
+  }
+  console.log(response);
+}
+
+
 async function locationFromIp(ipAddress) {
   try {
     const response = await fetch(`http://ipinfo.io/${ipAddress}/json`);
@@ -131,6 +173,26 @@ async function updateUser(id, username, password, theme, session) {
   return "idk";
 }
 //let responseTheme = await executeSQL(`UPDATE atlantic.users SET theme = "${theme}" WHERE id="${id}";`);
+
+
+async function getPreviousMessages(room_id_name) {
+  let isDm;
+  let messages;
+  console.log(room_id_name)
+  try {
+    isDm = room_id_name.split("_")[0]
+  } catch (error) {
+    isDm = false;
+  }
+  if (isDm == "DM") {
+    let roomName = room_id_name;
+    messages = await executeSQL(`SELECT * FROM atlantic.direct_messages WHERE name="${roomName}";`);
+  } else {
+    let roomId = room_id_name;
+    messages = await executeSQL(`SELECT * FROM atlantic.messages WHERE id="${roomId}";`);
+  }
+  return messages;
+}
 
 async function getUsers() {
   let response = await executeSQL("SELECT * FROM atlantic.users");
@@ -348,6 +410,17 @@ app.get('/create_account', (req, res) => {
   res.render('create_account');
 });
 
+app.get('/dm', async (req, res) => {
+  if (req.session.username) {
+    let target = req.query.target;
+    console.log(req.session.username, target);
+    let correctRoomName = await roomNameFromOccupants([req.session.username, target])
+    res.render("direct_messages", {roomId: correctRoomName, theme: req.session.theme, username: req.session.username});
+  } else {
+    res.redirect("/login");
+  }
+});
+
 app.get('/help', (req, res) => {
   const markdownFilePath = path.join(__dirname, 'public', 'views', 'help.md');
   fs.readFile(markdownFilePath, 'utf-8', (err, markdownContent) => {
@@ -379,9 +452,39 @@ app.get('/legal', (req, res) => {
 // Set up socket.io connections
 io.on('connection', async (socket) => {
     console.log('A user connected');
-    socket.join(socket.handshake.query.roomId);
+    //direct message authentication system
+    let roomId;
+    if (socket.handshake.query.dm || socket.handshake.query.roomId.split("_")[0] == "DM") {
+      let username = socket.handshake.session.username;
+      let roomName = socket.handshake.query.roomId;
+      try {
+        var roomOccupants = [roomName.split("_")[1], roomName.split("_")[2]];
+      } catch(error) {
+        console.log(`Error splitting to roomOccupants: \n ${error}\nroomName: ${roomName}\nroomOccupants: ${roomOccupants}`);
+      }
+      var usernameVerified = false;
+      for (const username_ of roomOccupants) {
+        
+        if (username_ == username) {
+          let correctRoomName = await roomNameFromOccupants(roomOccupants);
+          console.log(`DM established succesfully: ${roomName}`);
+          socket.join(correctRoomName);
+          roomId = correctRoomName;
+          usernameVerified = true;
+        } 
+      }
+      if (!usernameVerified) {
+        console.log(`REPORT: \n user logged in as ${username} tried to join DM room ${roomName} with query parameter ${socket.handshake.query.username}`);
+        socket.emit('info', 'connection declined');
+      }
+    } else {
+      socket.join(socket.handshake.query.roomId);
+      roomId = socket.handshake.query.roomId;
+    }
+    //emitting establishment to acknowledge room presence
     socket.emit('established', { message: 'Room joined successfully' });
 
+    //general socket information from session and such, to be forwarded to admin connections when the user sends a message
     var clientIp = socket.handshake.remoteAddress;
     var isAdmin = socket.handshake.session.admin;
     var username = socket.handshake.session.username;
@@ -389,32 +492,32 @@ io.on('connection', async (socket) => {
     var theme = socket.handshake.session.theme;
     var databaseId = socket.handshake.session.databaseId;
     var owner = socket.handshake.session.owner;
-    
     try{
       var password = decrypt(socket.handshake.session.encryptedPassword);
     } catch {
-      // req.session.destroy()
-      // res.redirect("/login")
       var password = undefined;
     }
-    
     var ip = socket.handshake.session.ip;
     var location = await locationFromIp(ip);
-    //socket.handshake.session.admin;
+  
     
 
     socket.on('disconnect', () => {
         console.log('A user disconnected');
     });
 
-    socket.on('establish', (data) => {
-      console.log("establish: \n"+JSON.stringify(data));
-      socket.join(data.roomId);
-      socket.emit('established', { message: 'Room joined successfully' });
-    });
+    //loading previous messages
+    let messages = await getPreviousMessages(roomId);
+    let formattedMessages = [];
+    for (const message of messages) {
+      formattedMessages.push({to: message.to, from: message.from, message: message.content})
+    }
 
+    socket.emit('loadPreviousMessages', {messages: formattedMessages});
+
+    //forwarding new message
     socket.on('newMessage', async (data) => {
-      // Broadcast the message to all clients in the room
+      // Harvesting data about sender
       console.log(data);
       const senderData = {
         clientIp,
@@ -427,9 +530,11 @@ io.on('connection', async (socket) => {
         ip,
         location
       };
-      
+
+      //getting room object
       const room = io.sockets.adapter.rooms.get(data.roomId);
       if (room) {
+        //for each client in the room, check if the client is an admin
         for (const clientId of room) {
           const clientSocket = io.sockets.sockets.get(clientId);
           const clientIsAdmin = clientSocket.handshake.session.admin;
@@ -440,15 +545,33 @@ io.on('connection', async (socket) => {
             admin: isAdmin,
             owner: owner
           };
-    
+          console.log('about to record')
+          let target;
+          if (roomId.split("_")[0] == "DM") {
+            let splitRoomName = roomId.split("_")
+            if (splitRoomName[1] == messageData.sender) {
+
+              target = splitRoomName[2];
+            } else {
+              target = splitRoomName[1];
+            }
+            recordMessage(data.roomId, messageData.sender, target, messageData.message);
+          } else {
+            recordMessage(data.roomId, messageData.sender, null, messageData.message);
+          }
+          
+          console.log("recorded message")
+          
           if (clientIsAdmin) {
             messageData.senderData = senderData;
+            //if the client is an admin, send additional data about sender.
           }
           clientSocket.emit('newMessageForwarding', messageData);
         }
       }
     });
-    
+
+    //old working one in case this blatant data harvestation fucks up some day
     // socket.on('newMessage', (data) => {
     //   // Broadcast the message to all clients in the room
     //   console.log(data);

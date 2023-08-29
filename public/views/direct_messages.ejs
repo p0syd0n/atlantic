@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room</title>
+    <% if (theme === 'light') { %>
+    <link rel="stylesheet" type="text/css" href="/css/room.css">
+    <% } else { %>
+        <link rel="stylesheet" type="text/css" href="/css/dark/dark_room.css">
+    <% } %>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <%- include('topbar.ejs') %>
+    <div class="content">
+        <p id="roomId" data-roomid="<%= roomId %>"></p>
+        <div class="message-box">
+            <!-- Messages will be displayed here -->
+        </div>
+        <div class="input-box">
+            <textarea class="message-input" id="message-input" placeholder="Type your message | Type '/exit' to leave"></textarea>
+            <button id='send-button' class="send-button">Send</button>
+        </div>
+        
+    </div>
+    <script src="/js/direct_messages.js"></script>
+</body>
+</html>
