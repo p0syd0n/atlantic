@@ -120,7 +120,6 @@ async function recordMessage(room_name_id, sender, target = null, content) {
   } else {
     response = await executeSQL(`INSERT INTO atlantic.messages (\`from\`, content, roomId) VALUES ('${sender}', '${content}', '${room_name_id}');`);
   }
-  console.log(response);
 }
 
 
@@ -178,7 +177,7 @@ async function updateUser(id, username, password, theme, session) {
 async function getPreviousMessages(room_id_name) {
   let isDm;
   let messages;
-  console.log(room_id_name)
+  console.log("getting previous messages for "+room_id_name);
   try {
     isDm = room_id_name.split("_")[0]
   } catch (error) {
@@ -189,7 +188,7 @@ async function getPreviousMessages(room_id_name) {
     messages = await executeSQL(`SELECT * FROM atlantic.direct_messages WHERE name="${roomName}";`);
   } else {
     let roomId = room_id_name;
-    messages = await executeSQL(`SELECT * FROM atlantic.messages WHERE id="${roomId}";`);
+    messages = await executeSQL(`SELECT * FROM atlantic.messages WHERE roomId="${roomId}";`);
   }
   return messages;
 }
@@ -510,7 +509,7 @@ io.on('connection', async (socket) => {
     let messages = await getPreviousMessages(roomId);
     let formattedMessages = [];
     for (const message of messages) {
-      formattedMessages.push({to: message.to, from: message.from, message: message.content})
+      formattedMessages.push({to: message.to, from: message.from, message: message.content, time: message.__createdtime__})
     }
 
     socket.emit('loadPreviousMessages', {messages: formattedMessages});

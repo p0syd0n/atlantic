@@ -80,6 +80,20 @@ socket.on('connect', () => {
     addMessage(prefix + data.sender + ': ' + data.message, data.senderData, prefix);
   });
 
+  socket.on('loadPreviousMessages', (data) => {
+    // Sort the messages based on the __createdtime__ property in ascending order
+    let messages = data.messages.sort((message1, message2) => message1.time - message2.time);
+  
+    for (const message of messages) {
+      addMessage(`${message.from}: ${message.message}`);
+    }
+  });
+  
+
+
+
+
+
   // Event listener for sending messages on button click
   document.getElementById('send-button').addEventListener('click', sendMessage);
 

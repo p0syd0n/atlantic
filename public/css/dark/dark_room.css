@@ -85,4 +85,8 @@ body {
   .send-button:hover {
     background-color: #0052a3;
   }
+
+  .message {
+    color: #fff
+  }
   
