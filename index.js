@@ -409,6 +409,11 @@ app.get('/create_account', (req, res) => {
   res.render('create_account');
 });
 
+app.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/login');
+})
+
 app.get('/dm', async (req, res) => {
   if (req.session.username) {
     let target = req.query.target;
