@@ -1,4 +1,5 @@
 // Import required modules
+//v1.1.4
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -425,6 +426,11 @@ app.get('/logout', (req, res) => {
 app.get('/dm', async (req, res) => {
   console.log("here")
   var target = req.query.target;
+  if (target == req.session.username) {
+    res.write("why would you want to message yourself\nthat really says something about how many friends hyou have\nsmh ngl\n");
+    res.send();
+    return;
+  }
   let allUsers = await getUsers();
   var allUsersArray = []
   for (const user of allUsers) {
