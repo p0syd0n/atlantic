@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Enter Username To DM</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <% if (theme === 'light') { %>
+        <link rel="stylesheet" type="text/css" href="/css/direct_messages_entry.css">
+    <% } else { %>
+        <link rel="stylesheet" type="text/css" href="/css/dark/dark_direct_messages_entry.css">
+    <% } %>
+    <script src="/js/direct_messages_entry.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>Direct Messaging</h2>
+        <form id="dm-entry-form" onsubmit="checkRedirect(event)">
+            <div class="form-group">
+                <label for="username">Enter Username:</label>
+                <input type="text" id="username-input" name="username" placeholder="Username" required>
+            </div>
+            <div class="form-group">
+                <button type="submit">Go</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

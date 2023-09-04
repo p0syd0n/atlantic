@@ -96,6 +96,8 @@ body {
     width: 0.8em; /* Adjust the size as needed */
     height: 0.8em; /* Adjust the size as needed */
     margin-right: 5px; /* Adjust the spacing as needed */
+    width:1rem;
+    height:1rem
   }
 
   .add-room {
@@ -114,3 +116,4 @@ body {
   .add-room-button:hover {
     background-color: #0052a3;
   }
+

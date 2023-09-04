@@ -19,8 +19,12 @@
       </div>
       <div class="rooms">
         <h2>Chat Rooms</h2>
-        <h2>Messages are not saved as of now</h2>
         <ul>
+          <li>
+            <a href="/dm_entry" class="normal-room">
+              **Direct Messages**
+            </a>
+          </li>
           <% rooms.forEach(room => { %>
             <li>
               <a href="/room?roomId=<%= room.id %>" class="<%= room.password === 'none' ? 'normal-room' : 'private-room' %>">

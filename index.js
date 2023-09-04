@@ -113,7 +113,7 @@ function isFirstLetterFirst(letter1, letter2) {
   return index1 < index2;
 }
 async function recordMessage(room_name_id, sender, target = null, content) {
-  let response;
+  var response;
   console.log(room_name_id);
   if (room_name_id.split("_")[0] === "DM") {
     response = await executeSQL(`INSERT INTO atlantic.direct_messages (\`to\`, \`from\`, content, name) VALUES ('${target}', '${sender}', '${content}', '${room_name_id}');`);
@@ -405,6 +405,14 @@ app.post('/executeCreateAccount', (req, res) => {
   res.redirect('/login');
 });
 
+app.get('/dm_entry', (req, res) => {
+  if (req.session.username) {
+    res.render('direct_messages_entry', {theme: req.session.theme});
+  } else {
+    res.redirect('/login');
+  }
+});
+
 app.get('/create_account', (req, res) => {
   res.render('create_account');
 });
@@ -415,11 +423,28 @@ app.get('/logout', (req, res) => {
 })
 
 app.get('/dm', async (req, res) => {
+  console.log("here")
+  var target = req.query.target;
+  let allUsers = await getUsers();
+  var allUsersArray = []
+  for (const user of allUsers) {
+    allUsersArray.push(user.username);
+  }
+  console.log(allUsersArray);
+  console.log(req.session.username, target);
   if (req.session.username) {
     let target = req.query.target;
+    if (!allUsersArray.includes(target)) {
+      console.log(`target: ${target}`)
+      console.log("does not include");
+      res.redirect('/dm_entry');
+      return;
+    }
     console.log(req.session.username, target);
-    let correctRoomName = await roomNameFromOccupants([req.session.username, target])
-    res.render("direct_messages", {roomId: correctRoomName, theme: req.session.theme, username: req.session.username});
+    let correctRoomName = await roomNameFromOccupants([req.session.username, target]);
+    res.render('direct_messages', {roomId: correctRoomName, theme: req.session.theme, username: req.session.username});
+    console.log("rendered");
+
   } else {
     res.redirect("/login");
   }
