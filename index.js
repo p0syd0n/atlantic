@@ -270,6 +270,14 @@ app.get('/deleteRoom', async (req, res) => {
   }
 });
 
+app.get('/user', (req, res) => {
+  if (Request.session.username) {
+    res.render('user_info', {theme: req.session.theme, username: req.query.username});
+  } else {
+    res.redirect('/login');
+  }
+});
+
 app.post('/changeSettings', async (req, res) => {
   if (req.session.username) {
     let { username, password, theme } = req.body;

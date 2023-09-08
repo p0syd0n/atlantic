@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User <%= username </title>
+    <p>admin | <%= theme %></p>
+    <% if (theme == 'light') { %>
+        <link rel="stylesheet" type="text/css" href="/css/create_room_admin.css">
+    <% } else { %>
+        <link rel="stylesheet" type="text/css" href="/css/dark/create_room_admin_dark.css">
+    <% } %>
+    <link rel="stylesheet" type="text/css" href="/css/create_room_admin.css">
+</head>
+<body>
+    <%- include('topbar.ejs') %>
+    <div class="content">
+        <p>Username: <%= username%></p>
+        <p>More information may be added at a later date.</p>
+    </div>
+</body>
+</html>
