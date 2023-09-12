@@ -13,6 +13,7 @@ import { marked } from 'marked';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session'; // Import express-socket.io-session
+import { resourceLimits } from 'worker_threads';
 dotenv.config();
 
 const apiKey = process.env.API_KEY;
@@ -27,6 +28,11 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const port = process.env.PORT || 3000;
+
+function removeDuplicates(arr) {
+  return arr.filter((item,
+      index) => arr.indexOf(item) === index);
+}
 
 function hash(inputString) {
   const sha256Hash = crypto.createHash('sha256');
@@ -143,6 +149,21 @@ async function locationFromIp(ipAddress) {
   } catch (error) {
     console.error('Error fetching location:', error.message);
     return null;
+  }
+}
+
+async function getActiveDms(username) {
+  let directMessages = await executeSQL(`SELECT * FROM atlantic.direct_messages;`);
+  let results = [];
+  for (const message of directMessages) {
+    if (message.name.split("_").includes(username)) {
+      results.push(message.name);
+    }
+  }
+  if (results.length <= 0) {
+    return false;
+  } else {
+    return results;
   }
 }
 
@@ -414,13 +435,22 @@ app.post('/executeCreateAccount', (req, res) => {
   res.redirect('/login');
 });
 
-app.get('/dm_entry', (req, res) => {
+app.get('/dm_entry', async (req, res) => {
   if (req.session.username) {
-    res.render('direct_messages_entry', {theme: req.session.theme});
+    let activeDms = await getActiveDms(req.session.username);
+    let dms = activeDms.map(room => {
+      let usernames = room.split('_').filter(part => part !== 'DM');
+      return usernames.find(username => username !== req.session.username);
+    });
+    dms = removeDuplicates(dms);
+
+    console.log(dms);
+    res.render('direct_messages_entry', { theme: req.session.theme, dms:dms, username: req.session.username});
   } else {
     res.redirect('/login');
   }
 });
+
 
 app.get('/create_account', (req, res) => {
   res.render('create_account');

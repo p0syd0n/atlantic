@@ -23,6 +23,12 @@
             <div class="form-group">
                 <button type="submit">Go</button>
             </div>
+            <% 
+            for (const person of dms) { 
+            %>
+                <a href="/dm?target=<%= person %>"><%= person %></a>
+                <br>
+           <% } %>
         </form>
     </div>
 </body>
