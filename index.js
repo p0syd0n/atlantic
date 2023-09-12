@@ -121,7 +121,6 @@ function isFirstLetterFirst(letter1, letter2) {
 }
 async function recordMessage(room_name_id, sender, target = null, content) {
   var response;
-  console.log(room_name_id);
   if (room_name_id.split("_")[0] === "DM") {
     response = await executeSQL(`INSERT INTO atlantic.direct_messages (\`to\`, \`from\`, content, name) VALUES ('${target}', '${sender}', '${content}', '${room_name_id}');`);
   } else {
@@ -199,7 +198,6 @@ async function updateUser(id, username, password, theme, session) {
 async function getPreviousMessages(room_id_name) {
   let isDm;
   let messages;
-  console.log("getting previous messages for "+room_id_name);
   try {
     isDm = room_id_name.split("_")[0]
   } catch (error) {
@@ -269,7 +267,6 @@ app.get('/create_room', (req, res) => {
 app.post('/executeCreateRoom', async (req, res) => {
   if (req.session.admin) {
     let { roomName, roomPassword} = req.body;
-    console.log(roomName, roomPassword);
     await addRoom(roomName, roomPassword);
     //let roomId = await idFromName(name);
     res.redirect("/")
@@ -284,7 +281,6 @@ app.post('/executeCreateRoom', async (req, res) => {
 app.get('/deleteRoom', async (req, res) => {
   if (req.session.admin) {
     let response = await removeRoom(req.query.roomId);
-    console.log(`deleted ${req.query.roomId}: ${JSON.stringify(response, null, 2)}`)
     res.redirect("/")
   } else{
     res.redirect("/")
@@ -303,7 +299,6 @@ app.post('/changeSettings', async (req, res) => {
   if (req.session.username) {
     let { username, password, theme } = req.body;
     let response = await updateUser(req.session.databaseId, username, password, theme, req.session);
-    console.log(`updated ${req.session.databaseId}: ${username}, ${password}, ${theme}: ${response}`);
     req.session.destroy();
     res.redirect("/");
   } else {
@@ -328,7 +323,6 @@ app.get('/room', async (req, res) => {
       send 404
     */
     for (const room of rooms) {
-      console.log(room)
       if (room.id == req.query.roomId) {
         if (room.password != "none") {
           for (const room of req.session.authenticatedFor) {
@@ -346,7 +340,6 @@ app.get('/room', async (req, res) => {
           return;
         } else {
           if (req.session.admin) {
-            console.log("rendering admin for "+req.session.username)
             res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
             return;
           } else {
@@ -416,7 +409,6 @@ app.post('/executeLogin', async (req, res) => {
           }
           req.session.nick = username;
           req.session.owner = user.owner;
-          console.log("ip: "+req.session.ip)
           res.redirect('/');
           return;
         } else {
@@ -444,7 +436,6 @@ app.get('/dm_entry', async (req, res) => {
     });
     dms = removeDuplicates(dms);
 
-    console.log(dms);
     res.render('direct_messages_entry', { theme: req.session.theme, dms:dms, username: req.session.username});
   } else {
     res.redirect('/login');
@@ -462,7 +453,6 @@ app.get('/logout', (req, res) => {
 })
 
 app.get('/dm', async (req, res) => {
-  console.log("here")
   var target = req.query.target;
   if (target == req.session.username) {
     res.write("why would you want to message yourself\nthat really says something about how many friends hyou have\nsmh ngl\n");
@@ -474,20 +464,14 @@ app.get('/dm', async (req, res) => {
   for (const user of allUsers) {
     allUsersArray.push(user.username);
   }
-  console.log(allUsersArray);
-  console.log(req.session.username, target);
   if (req.session.username) {
     let target = req.query.target;
     if (!allUsersArray.includes(target)) {
-      console.log(`target: ${target}`)
-      console.log("does not include");
       res.redirect('/dm_entry');
       return;
     }
-    console.log(req.session.username, target);
     let correctRoomName = await roomNameFromOccupants([req.session.username, target]);
     res.render('direct_messages', {roomId: correctRoomName, theme: req.session.theme, username: req.session.username});
-    console.log("rendered");
 
   } else {
     res.redirect("/login");
@@ -591,7 +575,6 @@ io.on('connection', async (socket) => {
     //forwarding new message
     socket.on('newMessage', async (data) => {
       // Harvesting data about sender
-      console.log(data);
       const senderData = {
         clientIp,
         isAdmin,
@@ -618,7 +601,6 @@ io.on('connection', async (socket) => {
             admin: isAdmin,
             owner: owner
           };
-          console.log('about to record')
           let target;
           if (roomId.split("_")[0] == "DM") {
             let splitRoomName = roomId.split("_")
@@ -632,9 +614,6 @@ io.on('connection', async (socket) => {
           } else {
             recordMessage(data.roomId, messageData.sender, null, messageData.message);
           }
-          
-          console.log("recorded message")
-          
           if (clientIsAdmin) {
             messageData.senderData = senderData;
             //if the client is an admin, send additional data about sender.
