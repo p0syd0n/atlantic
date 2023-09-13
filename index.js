@@ -288,7 +288,7 @@ app.get('/deleteRoom', async (req, res) => {
 });
 
 app.get('/user', (req, res) => {
-  if (Request.session.username) {
+  if (req.session.username) {
     res.render('user_info', {theme: req.session.theme, username: req.query.username});
   } else {
     res.redirect('/login');
