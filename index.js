@@ -265,16 +265,13 @@ app.get('/create_room', (req, res) => {
 });
 
 app.post('/executeCreateRoom', async (req, res) => {
-  if (req.session.admin) {
+  if (req.session.username) {
     let { roomName, roomPassword} = req.body;
     await addRoom(roomName, roomPassword);
     //let roomId = await idFromName(name);
-    res.redirect("/")
+    res.redirect("/");
   } else{
-    let { roomName, roomPassword } = req.body;
-    await addRoom(roomName, roomPassword);
-    let roomId = await idFromName(roomName);
-    res.redirect('/room?roomId'+roomId)
+    res.redirect('/login');
   }
 });
 
