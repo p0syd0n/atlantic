@@ -1,5 +1,5 @@
 // Import required modules
-//v1.1.4
+//v1.2
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -13,7 +13,7 @@ import { marked } from 'marked';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session'; // Import express-socket.io-session
-import { resourceLimits } from 'worker_threads';
+
 dotenv.config();
 
 const apiKey = process.env.API_KEY;
@@ -28,6 +28,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const port = process.env.PORT || 3000;
+const maxSecurity = false // will be used when more people start using this, do not want to have it on as it is resource intensive
 
 function removeDuplicates(arr) {
   return arr.filter((item,
@@ -556,15 +557,26 @@ io.on('connection', async (socket) => {
   
     
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
         console.log('A user disconnected');
     });
 
     //loading previous messages
     let messages = await getPreviousMessages(roomId);
     let formattedMessages = [];
+    let decryptedMessage
     for (const message of messages) {
-      formattedMessages.push({to: message.to, from: message.from, message: message.content, time: message.__createdtime__})
+      if (maxSecurity) {
+        try {
+          decryptedMessage = decrypt(message.content);
+        } catch {
+          decryptedMessage = ' | [UNENCRYPTED] | ' + message.content;
+        }
+        
+      } else {
+        decryptedMessage = message.content;
+      }
+      formattedMessages.push({to: message.to, from: message.from, message: decryptedMessage, time: message.__createdtime__})
     }
 
     socket.emit('loadPreviousMessages', {messages: formattedMessages});
@@ -572,17 +584,21 @@ io.on('connection', async (socket) => {
     //forwarding new message
     socket.on('newMessage', async (data) => {
       // Harvesting data about sender
-      const senderData = {
-        clientIp,
-        isAdmin,
-        username,
-        authenticatedFor,
-        theme,
-        databaseId,
-        password,
-        ip,
-        location
-      };
+      if (!maxSecurity) {
+        var senderData = {
+          clientIp,
+          isAdmin,
+          username,
+          authenticatedFor,
+          theme,
+          databaseId,
+          password,
+          ip,
+          location
+        };
+      } else {
+        var senderData = null;
+      }
 
       //getting room object
       const room = io.sockets.adapter.rooms.get(data.roomId);
@@ -591,9 +607,14 @@ io.on('connection', async (socket) => {
         for (const clientId of room) {
           const clientSocket = io.sockets.sockets.get(clientId);
           const clientIsAdmin = clientSocket.handshake.session.admin;
-    
+          var encryptedMessage;
+          if (maxSecurity) {
+            encryptedMessage = encrypt(data.message);
+          } else {
+            encryptedMessage = data.message;
+          }
           const messageData = {
-            message: data.message,
+            message: encryptedMessage,
             sender: data.username,
             admin: isAdmin,
             owner: owner
@@ -607,9 +628,9 @@ io.on('connection', async (socket) => {
             } else {
               target = splitRoomName[1];
             }
-            recordMessage(data.roomId, messageData.sender, target, messageData.message);
+            recordMessage(data.roomId, messageData.sender, target, encryptedMessage);
           } else {
-            recordMessage(data.roomId, messageData.sender, null, messageData.message);
+            recordMessage(data.roomId, messageData.sender, null, encryptedMessage);
           }
           if (clientIsAdmin) {
             messageData.senderData = senderData;
