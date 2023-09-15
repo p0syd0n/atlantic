@@ -547,6 +547,7 @@ io.on('connection', async (socket) => {
     var theme = socket.handshake.session.theme;
     var databaseId = socket.handshake.session.databaseId;
     var owner = socket.handshake.session.owner;
+    var lastTimeSent = Date.now();
     try{
       var password = decrypt(socket.handshake.session.encryptedPassword);
     } catch {
@@ -583,6 +584,9 @@ io.on('connection', async (socket) => {
 
     //forwarding new message
     socket.on('newMessage', async (data) => {
+      if (Date.now() - lastTimeSent <= 3500) {
+        return;
+      }
       // Harvesting data about sender
       if (!maxSecurity) {
         var senderData = {
@@ -639,6 +643,7 @@ io.on('connection', async (socket) => {
           clientSocket.emit('newMessageForwarding', messageData);
         }
       }
+      lastTimeSent = Date.now()
     });
 
     //old working one in case this blatant data harvestation fucks up some day
