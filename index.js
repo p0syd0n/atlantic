@@ -269,7 +269,6 @@ app.post('/executeCreateRoom', async (req, res) => {
   if (req.session.username) {
     let { roomName, roomPassword} = req.body;
     await addRoom(roomName, roomPassword);
-    //let roomId = await idFromName(name);
     res.redirect("/");
   } else{
     res.redirect('/login');
