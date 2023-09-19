@@ -285,6 +285,10 @@ app.get('/deleteRoom', async (req, res) => {
   }
 });
 
+app.get('/smurfcat', (req, res) => {
+  res.render('smurfcat')
+})
+
 app.get('/user', (req, res) => {
   if (req.session.username) {
     res.render('user_info', {theme: req.session.theme, username: req.query.username});
