@@ -430,14 +430,18 @@ app.post('/executeCreateAccount', (req, res) => {
 
 app.get('/dm_entry', async (req, res) => {
   if (req.session.username) {
+    console.log("dm entry");
     let activeDms = await getActiveDms(req.session.username);
+    console.log(activeDms);
     let dms = activeDms.map(room => {
       let usernames = room.split('_').filter(part => part !== 'DM');
       return usernames.find(username => username !== req.session.username);
     });
     dms = removeDuplicates(dms);
+    console.log(dms);
 
     res.render('direct_messages_entry', { theme: req.session.theme, dms:dms, username: req.session.username});
+    console.log("rendered");
   } else {
     res.redirect('/login');
   }
