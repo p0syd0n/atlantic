@@ -16,6 +16,7 @@ import expressSocketIO from 'express-socket.io-session'; // Import express-socke
 
 dotenv.config();
 
+//defining constants
 const apiKey = process.env.API_KEY;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,10 +31,7 @@ const io = new Server(server);
 const port = process.env.PORT || 3000;
 const maxSecurity = false // will be used when more people start using this, do not want to have it on as it is resource intensive
 
-function removeDuplicates(arr) {
-  return arr.filter((item,
-      index) => arr.indexOf(item) === index);
-}
+//defining security functions
 
 function hash(inputString) {
   const sha256Hash = crypto.createHash('sha256');
@@ -55,6 +53,7 @@ function decrypt(encryptedData) {
   return decryptedData;
 }
 
+//defining database/sql functions
 function executeSQL(sql) {
   return new Promise((resolve, reject) => {
     const options = {
@@ -80,75 +79,12 @@ function executeSQL(sql) {
   });
 }
 
-async function idFromName(name) {
-  let rooms = await getRooms();
-  for (let room of rooms) {
-    if (room.name == name) {
-      return room.id;
-    }
-  }
-  return 404;
-}
-
-async function roomNameFromOccupants(occupants) {
-  const username1 = occupants[0];
-  const username2 = occupants[1];
-
-  let i = 0;
-  while (i < Math.min(username1.length, username2.length)) {
-    if (username1[i] !== username2[i]) {
-      break;
-    }
-    i++;
-  }
-
-  const isFirstLetterFirstResult = isFirstLetterFirst(username1[i], username2[i]);
-
-  if (isFirstLetterFirstResult) {
-    return `DM_${username1}_${username2}`;
-  } else {
-    return `DM_${username2}_${username1}`;
-  }
-}
-
-function isFirstLetterFirst(letter1, letter2) {
-  const letterList = "abcdefghijklmnopqrstuvwxyz1234567890-=_+[]\\{}|;':\",./!@#$%^&*()<>?".split("");
-  const index1 = letterList.indexOf(letter1);
-  const index2 = letterList.indexOf(letter2);
-  if (index1 === -1 || index2 === -1) {
-    throw new Error("Invalid input letters");
-  }
-  return index1 < index2;
-}
 async function recordMessage(room_name_id, sender, target = null, content) {
   var response;
   if (room_name_id.split("_")[0] === "DM") {
     response = await executeSQL(`INSERT INTO atlantic.direct_messages (\`to\`, \`from\`, content, name) VALUES ('${target}', '${sender}', '${content}', '${room_name_id}');`);
   } else {
     response = await executeSQL(`INSERT INTO atlantic.messages (\`from\`, content, roomId) VALUES ('${sender}', '${content}', '${room_name_id}');`);
-  }
-}
-
-
-async function locationFromIp(ipAddress) {
-  try {
-    const response = await fetch(`http://ipinfo.io/${ipAddress}/json`);
-    if (response.ok) {
-      const data = await response.json();
-      return {
-        ip: data.ip,
-        city: data.city,
-        region: data.region,
-        country: data.country,
-        location: data.loc,
-        organization: data.org,
-      };
-    } else {
-      throw new Error('Response not OK');
-    }
-  } catch (error) {
-    console.error('Error fetching location:', error.message);
-    return null;
   }
 }
 
@@ -193,8 +129,6 @@ async function updateUser(id, username, password, theme, session) {
   let response = executeSQL(`UPDATE atlantic.users SET username = "${localUsername}", password = "${localPassword}", theme = "${localTheme}" WHERE id="${id}";`);
   return "idk";
 }
-//let responseTheme = await executeSQL(`UPDATE atlantic.users SET theme = "${theme}" WHERE id="${id}";`);
-
 
 async function getPreviousMessages(room_id_name) {
   let isDm;
@@ -224,7 +158,80 @@ async function getRooms() {
   return response;
 }
 
-// Set up session middleware
+//defining helper functions
+
+function removeDuplicates(arr) {
+  return arr.filter((item,
+      index) => arr.indexOf(item) === index);
+}
+
+async function idFromName(name) {
+  let rooms = await getRooms();
+  for (let room of rooms) {
+    if (room.name == name) {
+      return room.id;
+    }
+  }
+  return 404;
+}
+
+async function roomNameFromOccupants(occupants) {
+  const username1 = occupants[0];
+  const username2 = occupants[1];
+
+  let i = 0;
+  while (i < Math.min(username1.length, username2.length)) {
+    if (username1[i] !== username2[i]) {
+      break;
+    }
+    i++;
+  }
+
+  const isFirstLetterFirstResult = isFirstLetterFirst(username1[i], username2[i]);
+
+  if (isFirstLetterFirstResult) {
+    return `DM_${username1}_${username2}`;
+  } else {
+    return `DM_${username2}_${username1}`;
+  }
+}
+
+function isFirstLetterFirst(letter1, letter2) {
+  const letterList = "abcdefghijklmnopqrstuvwxyz1234567890-=_+[]\\{}|;':\",./!@#$%^&*()<>?".split("");
+  const index1 = letterList.indexOf(letter1);
+  const index2 = letterList.indexOf(letter2);
+  if (index1 === -1 || index2 === -1) {
+    throw new Error("Invalid input letters");
+  }
+  return index1 < index2;
+}
+
+async function locationFromIp(ipAddress) {
+  try {
+    const response = await fetch(`http://ipinfo.io/${ipAddress}/json`);
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        ip: data.ip,
+        city: data.city,
+        region: data.region,
+        country: data.country,
+        location: data.loc,
+        organization: data.org,
+      };
+    } else {
+      throw new Error('Response not OK');
+    }
+  } catch (error) {
+    console.error('Error fetching location:', error.message);
+    return null;
+  }
+}
+
+//let responseTheme = await executeSQL(`UPDATE atlantic.users SET theme = "${theme}" WHERE id="${id}";`);
+
+
+// Set up session middleware and resources
 const sessionMiddleware = session({
     secret: 'your-secret-key',
     resave: false,
@@ -254,7 +261,7 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.render('login'); // Render the 'login.ejs' file from the 'views' directory
+    res.render('login');
 });
 
 app.get('/create_room', (req, res) => {
@@ -285,7 +292,7 @@ app.get('/deleteRoom', async (req, res) => {
 });
 
 app.get('/smurfcat', (req, res) => {
-  res.render('smurfcat')
+  res.render('smurfcat'); //smurfcat lol
 })
 
 app.get('/user', (req, res) => {
@@ -305,7 +312,6 @@ app.post('/changeSettings', async (req, res) => {
   } else {
     res.redirect("/login");
   }
-
 });
 
 app.get('/room', async (req, res) => {
@@ -369,7 +375,7 @@ app.get('/room_password_entry', (req, res) => {
 app.post('/verifyRoomPassword', async (req, res) => {
   if (req.session.username) {
     let { password } = req.body;
-    let rooms = await getRooms()
+    let rooms = await getRooms();
     for (const room of rooms) {
       if (room.id == req.query.roomId) {
         if (room.password == password) {
@@ -384,7 +390,7 @@ app.post('/verifyRoomPassword', async (req, res) => {
     }
     res.sendStatus(404);
   } else {
-    res.redirect("/login")
+    res.redirect("/login");
   }
 });
 
@@ -393,23 +399,25 @@ app.post('/executeLogin', async (req, res) => {
     console.log(username, password);
     const users = await getUsers();
     for (const user of users) {
-      let currentUserHashedPass = hash(password)
+      let currentUserHashedPass = hash(password);
       if (user.username == username) {
         if (user.password == currentUserHashedPass) {
+          //adding data to the users session
           req.session.username = username;
           req.session.authenticatedFor = [];
           req.session.theme = user.theme;
           req.session.databaseId = user.id;
           req.session.hashedPassword = user.password;
           req.session.encryptedPassword = encrypt(user.password);
-          req.session.admin = user.admin
+          req.session.admin = user.admin; //admin boolean
           try {
             req.session.ip = req.headers['x-forwarded-for'].split(", ")[0]; 
           } catch (error) {
             console.log( `error with ip getting: \n ${error}`);
+            req.session.ip = undefined;
           }
-          req.session.nick = username;
-          req.session.owner = user.owner;
+          req.session.nick = username; //maybe a later feature
+          req.session.owner = user.owner; //owner boolean
           res.redirect('/');
           return;
         } else {
@@ -418,7 +426,7 @@ app.post('/executeLogin', async (req, res) => {
         }
       }
     }
-    res.redirect("/login")
+    res.redirect("/login");
 });
 
 
@@ -430,23 +438,18 @@ app.post('/executeCreateAccount', (req, res) => {
 
 app.get('/dm_entry', async (req, res) => {
   if (req.session.username) {
-    console.log("dm entry");
     let activeDms = await getActiveDms(req.session.username);
-    console.log(activeDms);
     let dms = activeDms.map(room => {
       let usernames = room.split('_').filter(part => part !== 'DM');
       return usernames.find(username => username !== req.session.username);
     });
     dms = removeDuplicates(dms);
-    console.log(dms);
-
     res.render('direct_messages_entry', { theme: req.session.theme, dms:dms, username: req.session.username});
     console.log("rendered");
   } else {
     res.redirect('/login');
   }
 });
-
 
 app.get('/create_account', (req, res) => {
   res.render('create_account');
@@ -465,7 +468,7 @@ app.get('/dm', async (req, res) => {
     return;
   }
   let allUsers = await getUsers();
-  var allUsersArray = []
+  var allUsersArray = [];
   for (const user of allUsers) {
     allUsersArray.push(user.username);
   }
@@ -497,6 +500,7 @@ app.get('/help', (req, res) => {
 });
 
 app.get('/legal', (req, res) => {
+  //disclaimer: legal files are not real
   const randomLegalIndex = Math.floor(Math.random() * legalDocuments.length);
   const legalFilePath = path.join(__dirname, 'public', 'views', legalDocuments[randomLegalIndex]);
   fs.readFile(legalFilePath, 'utf-8', (err, legalContent) => {
@@ -516,17 +520,19 @@ io.on('connection', async (socket) => {
     console.log('A user connected');
     //direct message authentication system
     let roomId;
+    //checking if it is a dm
     if (socket.handshake.query.dm || socket.handshake.query.roomId.split("_")[0] == "DM") {
+      //getting data from session and from query
       let username = socket.handshake.session.username;
       let roomName = socket.handshake.query.roomId;
       try {
         var roomOccupants = [roomName.split("_")[1], roomName.split("_")[2]];
+        //alphabetizing the dm room name, so that it doesnt differ when x messages y vs when y messages x
       } catch(error) {
         console.log(`Error splitting to roomOccupants: \n ${error}\nroomName: ${roomName}\nroomOccupants: ${roomOccupants}`);
       }
       var usernameVerified = false;
       for (const username_ of roomOccupants) {
-        
         if (username_ == username) {
           let correctRoomName = await roomNameFromOccupants(roomOccupants);
           console.log(`DM established succesfully: ${roomName}`);
@@ -536,6 +542,7 @@ io.on('connection', async (socket) => {
         } 
       }
       if (!usernameVerified) {
+        //warning about someone advanced enough to attempt to connect with socket and spoofed username
         console.log(`REPORT: \n user logged in as ${username} tried to join DM room ${roomName} with query parameter ${socket.handshake.query.username}`);
         socket.emit('info', 'connection declined');
       }
