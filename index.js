@@ -29,7 +29,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const port = process.env.PORT || 3000;
-const maxSecurity = false // will be used when more people start using this, do not want to have it on as it is resource intensive
+const maxSecurity = true; // will be used when more people start using this, do not want to have it on as it is resource intensive
 
 //defining security functions
 
@@ -632,7 +632,7 @@ io.on('connection', async (socket) => {
             encryptedMessage = data.message;
           }
           const messageData = {
-            message: encryptedMessage,
+            message: data.message,
             sender: data.username,
             admin: isAdmin,
             owner: owner
