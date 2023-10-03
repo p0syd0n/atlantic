@@ -1,5 +1,5 @@
 // Get username from hidden paragraph
-const username = document.querySelector('#sessionusername').textContent.trim();
+const username = document.getElementById('sessionUsername').innerHTML;
 
 // Create a peer connection with a custom ID
 var peer = new Peer(username);

@@ -448,11 +448,15 @@ app.post('/executeLogin', async (req, res) => {
     res.redirect("/login");
 });
 
+app.get('/permissions', (req, res) => {
+  res.render('perms.ejs');
+});
+
 
 app.post('/executeCreateAccount', (req, res) => {
   let { username, password } = req.body;
   addUser(username, password, 'light');
-  res.redirect('/login');
+  res.redirect('/permissions');
 });
 
 app.get('/dm_entry', async (req, res) => {
@@ -537,6 +541,9 @@ app.get('/legal', (req, res) => {
 // Set up socket.io connections
 io.on('connection', async (socket) => {
     console.log('A user connected');
+    if (socket.handshake.query.notificationManager) {
+      
+    }
     //direct message authentication system
     let roomId;
     //checking if it is a dm
@@ -666,7 +673,7 @@ io.on('connection', async (socket) => {
               target = splitRoomName[1];
             }
             recordMessage(data.roomId, messageData.sender, target, encryptedMessage);
-            console.log(`recorded message dm with room id: ${data.roomId}`)
+            console.log(`recorded message dm with room id: ${data.roomId}`);
           } else {
             recordMessage(data.roomId, messageData.sender, null, encryptedMessage);
             console.log('recording message not dm');
