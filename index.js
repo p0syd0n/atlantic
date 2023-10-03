@@ -1,5 +1,6 @@
 // Import required modules
-//v2.0
+//v3.0
+//audio added
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -30,7 +31,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const port = process.env.PORT || 3000;
-//const VCPeerServer = PeerServer({ port: 9000, debug: true, path: '/vc_server' });
+
 const maxSecurity = true; // ok encryption is on and working
 let onlineClients = {};
 
@@ -689,11 +690,6 @@ io.on('connection', async (socket) => {
     //   io.to(data.roomId).emit('newMessageForwarding', {message:data.message, sender: data.username, admin: isAdmin});
     // });
 });
-
-// VCPeerServer.on('connection', (client) => {
-//   console.log('someone connected');
-// });
-
 
 // Start the server
 server.listen(port, async () => {
