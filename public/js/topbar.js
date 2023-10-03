@@ -3,6 +3,7 @@ const modalBackdrop = document.getElementById("modal-backdrop");
 const settingsModal = document.getElementById("settings-modal");
 const closeModalButton = document.getElementById("close-modal");
 const logoutButton = document.getElementById("logout");
+
 openSettingsButton.addEventListener("click", () => {
     modalBackdrop.style.display = "block";
     settingsModal.style.display = "block";

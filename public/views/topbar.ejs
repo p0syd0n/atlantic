@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="/css/topbar.css">
+<!-- <link rel="stylesheet" type="text/css" href="/css/topbar.css">
 <div class="top-bar">
     <div class="username">
         <a class="username-link" id="open-settings-button"><%= username %></a>
@@ -35,4 +35,79 @@
 </div>
 
 <p id="sessionUsername" value="<%= username %>" hidden><%= username %></p>
+
+<script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
 <script src="/js/topbar.js"></script>
+ -->
+
+
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/topbar.css">
+
+<div class="top-bar">
+    <div class="username">
+        <a class="username-link" id="open-settings-button"><%= username %></a>
+        <button id="call">Call</button>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop"></div>
+
+<div class="settings-modal" id="settings-modal">
+    <div class="modal-content">
+        <button id="close-modal">Close</button>
+        <br>
+        <button id="logout">Log Out</button>
+        <form id="settings-form" autocomplete="off" action="/changeSettings" method="post">
+            <label for="username">Username:</label>
+            <input placeholder="<%= username %>" autoComplete="new-password" type="text" id="username" name="username">
+            
+            <label for="password">Password:</label>
+            <input placeholder="New Password?" autoComplete="new-password" type="password" id="password" name="password">
+            
+            <fieldset>
+                <legend>Theme:</legend>
+                <label>
+                    <input type="radio" name="theme" value="dark" <%- (theme == 'dark') ? 'checked' : '' %>>
+                    Dark Mode
+                </label>
+                <label>
+                    <input type="radio" name="theme" value="light" <%- (theme == 'light') ? 'checked' : '' %>>
+                    Light Mode
+                </label>
+            </fieldset>            
+
+            <button type="submit">Save</button>
+        </form>
+    </div>
+</div>
+
+<!-- Incoming call modal dialog -->
+<dialog id="incoming-call-dialog">
+    <p>Incoming call...</p>
+    <button id="accept-call-button">Accept</button>
+    <button id="reject-call-button">Reject</button>
+</dialog>
+
+<!-- Call interface modal dialog -->
+<dialog id="call-interface-dialog">
+    <p>Call in progress...</p>
+    <audio id="audio-element" controls></audio>
+    <button id="end-call-button">End Call</button>
+</dialog>
+
+<!-- Dial modal dialog -->
+<dialog id="dial-dialog">
+    <label for="target-username-input">Enter username to call:</label>
+    <input type="text" id="target-username-input">
+    <button id="call-button">Call</button>
+</dialog>
+
+<p id="sessionusername" value="<%= username %>" hidden><%= username %></p>
+
+<script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+<script src="/js/topbar.js"></script>
+<script src="/js/vc_topbar.js"></script> <!-- replace with your actual script file -->

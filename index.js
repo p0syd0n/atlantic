@@ -13,6 +13,7 @@ import { marked } from 'marked';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session'; // Import express-socket.io-session
+import  { PeerServer } from 'peer';
 
 dotenv.config();
 
@@ -29,10 +30,11 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const port = process.env.PORT || 3000;
-const maxSecurity = true; // will be used when more people start using this, do not want to have it on as it is resource intensive
+//const VCPeerServer = PeerServer({ port: 9000, debug: true, path: '/vc_server' });
+const maxSecurity = true; // ok encryption is on and working
+let onlineClients = {};
 
 //defining security functions
-
 function hash(inputString) {
   const sha256Hash = crypto.createHash('sha256');
   sha256Hash.update(inputString);
@@ -245,6 +247,7 @@ app.use(express.json());
 app.set('views', path.join(__dirname, 'public', 'views'));
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
+//app.use('/vcServer', VCPeerServer);
 
 // Handle routes
 app.get('/', async (req, res) => {
@@ -301,6 +304,20 @@ app.get('/user', (req, res) => {
   } else {
     res.redirect('/login');
   }
+});
+
+app.get('/vc', (req, res) => {
+  var target;
+  if (req.session.username) {
+    try {
+      target = req.query.target;
+    } catch {
+      res.sendStatus(400);
+    }
+    res.render('call', { username: req.session.username, target: target });
+  } else {
+    res.redirect('/login');
+  }  
 });
 
 app.post('/changeSettings', async (req, res) => {
@@ -418,6 +435,7 @@ app.post('/executeLogin', async (req, res) => {
           }
           req.session.nick = username; //maybe a later feature
           req.session.owner = user.owner; //owner boolean
+          onlineClients.username = req.session;
           res.redirect('/');
           return;
         } else {
@@ -647,8 +665,10 @@ io.on('connection', async (socket) => {
               target = splitRoomName[1];
             }
             recordMessage(data.roomId, messageData.sender, target, encryptedMessage);
+            console.log(`recorded message dm with room id: ${data.roomId}`)
           } else {
             recordMessage(data.roomId, messageData.sender, null, encryptedMessage);
+            console.log('recording message not dm');
           }
           if (clientIsAdmin) {
             messageData.senderData = senderData;
@@ -669,6 +689,11 @@ io.on('connection', async (socket) => {
     //   io.to(data.roomId).emit('newMessageForwarding', {message:data.message, sender: data.username, admin: isAdmin});
     // });
 });
+
+// VCPeerServer.on('connection', (client) => {
+//   console.log('someone connected');
+// });
+
 
 // Start the server
 server.listen(port, async () => {
