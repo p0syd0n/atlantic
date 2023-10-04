@@ -271,6 +271,7 @@ app.use(express.json());
 app.set('views', path.join(__dirname, 'public', 'views'));
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
+app.set("trust proxy", 1);
 //app.use('/vcServer', VCPeerServer);
 
 // Handle routes

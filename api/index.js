@@ -252,9 +252,16 @@ function findNotificationManagerSocket(io, username) {
 
 // Set up session middleware and other resources
 const sessionMiddleware = session({
-    secret: 'your-secret-key',
-    resave: false,
-    saveUninitialized: true
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  proxy: true, // Required for Heroku & Digital Ocean (regarding X-Forwarded-For)
+  name: process.env.DEPLOY_COOKIE_NAME, // This needs to be unique per-host.
+  cookie: {
+    secure: true, // required for cookies to work on HTTPS
+    httpOnly: false,
+    sameSite: 'none'
+  }
 });
 
 app.use(sessionMiddleware);
@@ -264,6 +271,7 @@ app.use(express.json());
 app.set('views', path.join(__dirname, 'public', 'views'));
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
+app.set("trust proxy", 1);
 //app.use('/vcServer', VCPeerServer);
 
 // Handle routes
@@ -477,9 +485,10 @@ app.post('/executeCreateAccount', (req, res) => {
 
 app.get('/dm_entry', async (req, res) => {
   if (req.session.username) {
+    var dms;
     let activeDms = await getActiveDms(req.session.username);
     if (activeDms != false) {
-      let dms = activeDms.map(room => {
+      dms = activeDms.map(room => {
         let usernames = room.split('_').filter(part => part !== 'DM');
         return usernames.find(username => username !== req.session.username);
       });
