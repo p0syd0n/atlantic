@@ -477,15 +477,16 @@ app.post('/executeCreateAccount', (req, res) => {
 
 app.get('/dm_entry', async (req, res) => {
   if (req.session.username) {
+    var dms;
     let activeDms = await getActiveDms(req.session.username);
     if (activeDms != false) {
-      let dms = activeDms.map(room => {
+      dms = activeDms.map(room => {
         let usernames = room.split('_').filter(part => part !== 'DM');
         return usernames.find(username => username !== req.session.username);
       });
       dms = removeDuplicates(dms);
     } else {
-      let dms = [];
+      dms = [];
     }
 
     res.render('direct_messages_entry', { theme: req.session.theme, dms:dms, username: req.session.username });
