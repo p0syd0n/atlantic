@@ -46,7 +46,9 @@
 
 
 <link rel="stylesheet" type="text/css" href="/css/topbar.css">
-
+<link rel="icon" href="/images/atlantic_icon.ico" type="image/x-icon" />
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
 <div class="top-bar">
     <div class="username">
         <a class="username-link" id="open-settings-button"><%= username %></a>
@@ -109,7 +111,6 @@
 
 <p id="sessionUsername" value="<%= username %>" hidden><%= username %></p>
 
-<script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
 <script src="/js/topbar.js"></script>
 <script src="/js/vc_topbar.js"></script>
 <script src="/js/notifications_topbar.js"></script>

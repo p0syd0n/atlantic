@@ -14,7 +14,6 @@ import { marked } from 'marked';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session'; // Import express-socket.io-session
-import  { PeerServer } from 'peer';
 
 dotenv.config();
 
@@ -231,10 +230,27 @@ async function locationFromIp(ipAddress) {
   }
 }
 
+function findNotificationManagerSocket(io, username) {
+  const connectedSockets = io.sockets.sockets;
+  for (const socket of connectedSockets) {
+    if (socket) {
+      const { handshake } = socket[1]; // Assuming the handshake property always exists
+      if (
+        handshake.query.notificationManager == 'true' &&
+        handshake.session.username == username
+      ) {
+        return socket[0];
+      }
+    }
+  }
+  return null;
+}
+
+
 //let responseTheme = await executeSQL(`UPDATE atlantic.users SET theme = "${theme}" WHERE id="${id}";`);
 
 
-// Set up session middleware and resources
+// Set up session middleware and other resources
 const sessionMiddleware = session({
     secret: 'your-secret-key',
     resave: false,
@@ -542,7 +558,13 @@ app.get('/legal', (req, res) => {
 io.on('connection', async (socket) => {
     console.log('A user connected');
     if (socket.handshake.query.notificationManager) {
-      
+      if (!socket.handshake.session.username) {
+        console.log('no username, destorying');
+        socket.disconnect();
+        return;
+      } else {
+        return;
+      }
     }
     //direct message authentication system
     let roomId;
@@ -623,70 +645,76 @@ io.on('connection', async (socket) => {
     socket.emit('loadPreviousMessages', {messages: formattedMessages});
 
     //forwarding new message
+
     socket.on('newMessage', async (data) => {
       if (Date.now() - lastTimeSent <= 3500) {
-        return;
+          return;
       }
       // Harvesting data about sender
       if (!maxSecurity) {
-        var senderData = {
-          clientIp,
-          isAdmin,
-          username,
-          authenticatedFor,
-          theme,
-          databaseId,
-          password,
-          ip,
-          location
-        };
+          var senderData = {
+              clientIp,
+              isAdmin,
+              username,
+              authenticatedFor,
+              theme,
+              databaseId,
+              password,
+              ip,
+              location
+          };
       } else {
-        var senderData = null;
+          var senderData = null;
       }
-
-      //getting room object
+  
+      // Getting room object
       const room = io.sockets.adapter.rooms.get(data.roomId);
       if (room) {
-        //for each client in the room, check if the client is an admin
-        for (const clientId of room) {
-          const clientSocket = io.sockets.sockets.get(clientId);
-          const clientIsAdmin = clientSocket.handshake.session.admin;
-          var encryptedMessage;
-          if (maxSecurity) {
-            encryptedMessage = encrypt(data.message);
-          } else {
-            encryptedMessage = data.message;
+          // For each client in the room, check if the client is an admin
+          for (const clientId of room) {
+              const clientSocket = io.sockets.sockets.get(clientId);
+              const clientIsAdmin = clientSocket.handshake.session.admin;
+              var encryptedMessage;
+              if (maxSecurity) {
+                  encryptedMessage = encrypt(data.message);
+              } else {
+                  encryptedMessage = data.message;
+              }
+              const messageData = {
+                  message: data.message,
+                  sender: data.username,
+                  admin: isAdmin,
+                  owner: owner
+              };
+              let target;
+              if (roomId.split("_")[0] == "DM") {
+                  let splitRoomName = roomId.split("_")
+                  if (splitRoomName[1] == messageData.sender) {
+                      target = splitRoomName[2];
+                  } else {
+                      target = splitRoomName[1];
+                  }
+                  recordMessage(data.roomId, messageData.sender, target, encryptedMessage);
+                  console.log(`recorded message dm with room id: ${data.roomId}`);
+                  // Find the notification manager socket with a matching username
+                  console.log(target);
+                  const notificationManagerSocketId = findNotificationManagerSocket(io, target);
+                  if (notificationManagerSocketId) {
+                      io.to(notificationManagerSocketId).emit('notification', { message: 'You have a new direct message.' })
+                  }
+              } else {
+                  recordMessage(data.roomId, messageData.sender, null, encryptedMessage);
+                  console.log('recording message not dm');
+              }
+              if (clientIsAdmin) {
+                  messageData.senderData = senderData;
+                  // If the client is an admin, send additional data about the sender.
+              }
+              clientSocket.emit('newMessageForwarding', messageData);
           }
-          const messageData = {
-            message: data.message,
-            sender: data.username,
-            admin: isAdmin,
-            owner: owner
-          };
-          let target;
-          if (roomId.split("_")[0] == "DM") {
-            let splitRoomName = roomId.split("_")
-            if (splitRoomName[1] == messageData.sender) {
-
-              target = splitRoomName[2];
-            } else {
-              target = splitRoomName[1];
-            }
-            recordMessage(data.roomId, messageData.sender, target, encryptedMessage);
-            console.log(`recorded message dm with room id: ${data.roomId}`);
-          } else {
-            recordMessage(data.roomId, messageData.sender, null, encryptedMessage);
-            console.log('recording message not dm');
-          }
-          if (clientIsAdmin) {
-            messageData.senderData = senderData;
-            //if the client is an admin, send additional data about sender.
-          }
-          clientSocket.emit('newMessageForwarding', messageData);
-        }
       }
-      lastTimeSent = Date.now()
-    });
+      lastTimeSent = Date.now();
+  });
 
     //old working one in case this blatant data harvestation fucks up some day
     // socket.on('newMessage', (data) => {
