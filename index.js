@@ -252,9 +252,16 @@ function findNotificationManagerSocket(io, username) {
 
 // Set up session middleware and other resources
 const sessionMiddleware = session({
-    secret: 'your-secret-key',
-    resave: false,
-    saveUninitialized: true
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  proxy: true, // Required for Heroku & Digital Ocean (regarding X-Forwarded-For)
+  name: process.env.DEPLOY_COOKIE_NAME, // This needs to be unique per-host.
+  cookie: {
+    secure: true, // required for cookies to work on HTTPS
+    httpOnly: false,
+    sameSite: 'none'
+  }
 });
 
 app.use(sessionMiddleware);
