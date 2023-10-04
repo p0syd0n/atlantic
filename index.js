@@ -485,7 +485,7 @@ app.get('/dm_entry', async (req, res) => {
       });
       dms = removeDuplicates(dms);
     } else {
-      dms = [];
+      let dms = [];
     }
 
     res.render('direct_messages_entry', { theme: req.session.theme, dms:dms, username: req.session.username });
