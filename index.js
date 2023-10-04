@@ -478,12 +478,17 @@ app.post('/executeCreateAccount', (req, res) => {
 app.get('/dm_entry', async (req, res) => {
   if (req.session.username) {
     let activeDms = await getActiveDms(req.session.username);
-    let dms = activeDms.map(room => {
-      let usernames = room.split('_').filter(part => part !== 'DM');
-      return usernames.find(username => username !== req.session.username);
-    });
-    dms = removeDuplicates(dms);
-    res.render('direct_messages_entry', { theme: req.session.theme, dms:dms, username: req.session.username});
+    if (activeDms != false) {
+      let dms = activeDms.map(room => {
+        let usernames = room.split('_').filter(part => part !== 'DM');
+        return usernames.find(username => username !== req.session.username);
+      });
+      dms = removeDuplicates(dms);
+    } else {
+      dms = [];
+    }
+
+    res.render('direct_messages_entry', { theme: req.session.theme, dms:dms, username: req.session.username });
     console.log("rendered");
   } else {
     res.redirect('/login');
@@ -643,6 +648,7 @@ io.on('connection', async (socket) => {
     }
 
     socket.emit('loadPreviousMessages', {messages: formattedMessages});
+    console.log('loading messages');
 
     //forwarding new message
 
