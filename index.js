@@ -24,6 +24,7 @@ const __dirname = path.dirname(__filename);
 const iv = Buffer.from(process.env.IV, 'hex');
 const secretKey = Buffer.from(process.env.ENCRYPT_KEY, 'hex');
 const legalDocuments = ['legal_1.md', 'legal_2.md', 'legal_3.md'];
+const PORT = process.env.PORT;
 
 // Create instances
 const app = express();
@@ -742,6 +743,6 @@ io.on('connection', async (socket) => {
 });
 
 // Start the server
-server.listen(port, async () => {
+server.listen(PORT, async () => {
   console.log(`Server is running on port ${port}`);
 });
