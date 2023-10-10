@@ -10,6 +10,7 @@ const callInterfaceDialog = document.querySelector('#call-interface-dialog');
 const dialDialog = document.querySelector('#dial-dialog');
 const audioElement = document.querySelector('#audio-element');
 const callButton = document.getElementById('call');
+const endCallButton = document.getElementById('end-call-button');
 
 let currentCall;
 
@@ -29,11 +30,14 @@ peer.on('call', function(call) {
             // Answer the call with an A/V stream
             call.answer(stream);
 
+            // Hide the incoming call dialog after accepting the call
+            incomingCallDialog.close();
+
             // Display the call interface dialog
             callInterfaceDialog.showModal();
 
             call.on('stream', function(remoteStream) {
-                // Show stream in some audio element
+                // Show the stream in the audio element
                 audioElement.srcObject = remoteStream;
             });
 
@@ -50,9 +54,12 @@ peer.on('call', function(call) {
     });
 });
 
-// Close call interface dialog when the call is ended
-document.querySelector('#end-call-button').addEventListener('click', function() {
-    currentCall.close();
+// Close call interface dialog and end the call when the "End Call" button is clicked
+endCallButton.addEventListener('click', function() {
+    if (currentCall) {
+        currentCall.close();
+        currentCall = null;
+    }
     callInterfaceDialog.close();
 });
 
@@ -73,7 +80,7 @@ function makeCall() {
             callInterfaceDialog.showModal();
 
             call.on('stream', function(remoteStream) {
-                // Show stream in some audio element
+                // Show stream in the audio element
                 audioElement.srcObject = remoteStream;
             });
 
@@ -82,5 +89,8 @@ function makeCall() {
         .catch(function(err) {
             console.error('Failed to get local stream', err);
         });
+
+        // Hide the dial dialog after initiating the call
+        dialDialog.close();
     });
 }
