@@ -303,6 +303,9 @@ app.get('/create_room', (req, res) => {
 app.post('/executeCreateRoom', async (req, res) => {
   if (req.session.username) {
     let { roomName, roomPassword} = req.body;
+    if (roomPassword == "") {
+      roomPassword = "none";
+    }
     await addRoom(roomName, roomPassword);
     res.redirect("/");
   } else{
