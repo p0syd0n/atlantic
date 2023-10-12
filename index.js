@@ -496,8 +496,9 @@ app.post('/executeLogin', async (req, res) => {
 });
 
 app.get('/temp_notice', (req, res) => {
-  res.send('Atlantic is migrating to the argonid hashing system for authentication. This is more secure, but also slower. It prevents against rainbow table attacks (salt). ');
+  res.send('Atlantic is migrating to the argonid hashing system for authentication. This is more secure, but also slower. It prevents against rainbow table attacks (salt).\n\nWhat do you need to do about this?\nYou can keep things just the way they are, however deleting your account and creating a new one will increase your security.');
 });
+
 app.get('/permissions', (req, res) => {
   res.render('perms.ejs');
 });
