@@ -39,6 +39,7 @@ peer.on('call', function(call) {
             call.on('stream', function(remoteStream) {
                 // Show the stream in the audio element
                 audioElement.srcObject = remoteStream;
+                beginCallGui();
             });
 
             currentCall = call;
@@ -93,4 +94,11 @@ function makeCall() {
         // Hide the dial dialog after initiating the call
         dialDialog.close();
     });
+}
+
+function beginCallGui() {
+    if (audioElement) {
+        audioElement.play(); // Unpause the audio
+        audioElement.style.visibility = "hidden"; // Hide the audio element
+    }
 }

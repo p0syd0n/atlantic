@@ -51,8 +51,9 @@
 <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
 <div class="top-bar">
     <div class="username">
-        <a class="username-link" id="open-settings-button"><%= username %></a>
-        <button id="call">Call</button>
+        <a class="username-link" id="open-settings-button"><%= username %>: Settings</a>
+        <a class="username-link" href="/smurfcat"> | </a>
+        <a class="username-link" id="call">Call Menu</a>
     </div>
 </div>
 
@@ -60,9 +61,10 @@
 
 <div class="settings-modal" id="settings-modal">
     <div class="modal-content">
-        <button id="close-modal">Close</button>
-        <br>
-        <button id="logout">Log Out</button>
+        <div class="modal-header">
+            <button id="close-modal">Close</button>
+            <button id="logout">Log Out</button>
+        </div>
         <form id="settings-form" autocomplete="off" action="/changeSettings" method="post">
             <label for="username">Username:</label>
             <input placeholder="<%= username %>" autoComplete="new-password" type="text" id="username" name="username">
@@ -96,7 +98,7 @@
 
 <!-- Call interface modal dialog -->
 <dialog id="call-interface-dialog">
-    <p>Call in progress...</p>
+    <p id="call-label">Call in progress...</p>
     <audio id="audio-element" controls></audio>
     <button id="end-call-button">End Call</button>
 </dialog>
