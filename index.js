@@ -14,6 +14,7 @@ import { marked } from 'marked';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session'; // Import express-socket.io-session
+import argon2 from 'argon2';
 
 dotenv.config();
 
@@ -35,6 +36,16 @@ const maxSecurity = true; // ok encryption is on and working
 let onlineClients = {};
 
 //defining security functions
+
+async function argonHash(password) {
+  try {
+    const hash = await argon2.hash(password);
+    return hash;
+   } catch (err) {
+    console.log("ERROR HASHING: " + err);
+   }
+}
+
 function hash(inputString) {
   const sha256Hash = crypto.createHash('sha256');
   sha256Hash.update(inputString);
@@ -111,7 +122,7 @@ async function addRoom(name, password) {
 }
 
 async function addUser(username, password, theme) {
-  let hashedPass = hash(password);
+  let hashedPass = await argonHash(password);
   let response = await executeSQL(`INSERT INTO atlantic.users (username, password, theme, admin, owner) VALUES ('${username}', '${hashedPass}', '${theme}', false, false)`);
   return response;
 }
@@ -443,10 +454,19 @@ app.post('/executeLogin', async (req, res) => {
     const { username, password } = req.body;
     console.log(username, password);
     const users = await getUsers();
+    let currentUserVerifiedArgon
     for (const user of users) {
       let currentUserHashedPass = hash(password);
       if (user.username == username) {
-        if (user.password == currentUserHashedPass) {
+        if (user.password[0] == '$') {
+          try {
+            currentUserVerifiedArgon = argon2.verify(user.password, password);
+          } catch {
+            currentUserVerifiedArgon = false;
+          }
+        }
+
+        if (user.password == currentUserHashedPass || currentUserVerifiedArgon) {
           //adding data to the users session
           req.session.username = username;
           req.session.authenticatedFor = [];
@@ -475,6 +495,9 @@ app.post('/executeLogin', async (req, res) => {
     res.redirect("/login");
 });
 
+app.get('/temp_notice', (req, res) => {
+  res.send('Atlantic is migrating to the argonid hashing system for authentication. This is more secure, but also slower. It prevents against rainbow table attacks (salt). ');
+});
 app.get('/permissions', (req, res) => {
   res.render('perms.ejs');
 });
@@ -746,5 +769,7 @@ io.on('connection', async (socket) => {
 
 // Start the server
 server.listen(PORT, async () => {
+  let hashed = await argonHash('admin')
+  console.log(hashed);
   console.log(`Server is running on port ${PORT}`);
 });
