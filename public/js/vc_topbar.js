@@ -11,6 +11,7 @@ const dialDialog = document.querySelector('#dial-dialog');
 const audioElement = document.querySelector('#audio-element');
 const callButton = document.getElementById('call');
 const endCallButton = document.getElementById('end-call-button');
+const callLabel = document.getElementById('call-label');
 
 let currentCall;
 
@@ -37,6 +38,7 @@ peer.on('call', function(call) {
             callInterfaceDialog.showModal();
 
             call.on('stream', function(remoteStream) {
+                callLabel.innerHTML = "Call In Progress...";
                 // Show the stream in the audio element
                 audioElement.srcObject = remoteStream;
                 beginCallGui();
