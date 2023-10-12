@@ -38,7 +38,6 @@ peer.on('call', function(call) {
             callInterfaceDialog.showModal();
 
             call.on('stream', function(remoteStream) {
-                alert("Time to fucking call dumbass")
                 beginCallGui();
                 callLabel.innerHTML = "Call In Progress...";
                 // Show the stream in the audio element
@@ -85,7 +84,6 @@ function makeCall() {
             callInterfaceDialog.showModal();
 
             call.on('stream', function(remoteStream) {
-                alert("Time to fucking call dumbass")
                 beginCallGui();
                 callLabel.innerHTML = "Call In Progress...";
                 // Show stream in the audio element
@@ -105,7 +103,7 @@ function makeCall() {
 
 function beginCallGui() {
     if (audioElement) {
-        audioElement.pause(); // Unpause the audio
-        //audioElement.style.visibility = "hidden"; // Hide the audio element
+        audioElement.play(); // Unpause the audio
+        audioElement.style.visibility = "hidden"; // Hide the audio element
     }
 }
