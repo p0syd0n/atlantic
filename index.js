@@ -26,6 +26,7 @@ const iv = Buffer.from(process.env.IV, 'hex');
 const secretKey = Buffer.from(process.env.ENCRYPT_KEY, 'hex');
 const legalDocuments = ['legal_1.md', 'legal_2.md', 'legal_3.md'];
 const PORT = process.env.PORT;
+let roomMap = {};
 
 // Create instances
 const app = express();
@@ -172,6 +173,16 @@ async function getRooms() {
 }
 
 //defining helper functions
+
+async function updateRoomMap() {
+  let rooms = await getRooms();
+  roomMap = {};
+  for(let room of rooms) {
+    roomMap[room.id] = room;
+  }
+  console.log(roomMap);
+}
+
 
 function removeDuplicates(arr) {
   return arr.filter((item,
@@ -372,43 +383,31 @@ app.post('/changeSettings', async (req, res) => {
 
 app.get('/room', async (req, res) => {
   if (req.session.username) {
-    let rooms = await getRooms();
-    /*
-    if the room exisits:
-      if the room is private:
-        if you have authentication to enter the room:
-          join room
-        else:
-          redirect to authentication
-      else:
-        join the room
-    else:
-      send 404
-    */
-    for (const room of rooms) {
-      if (room.id == req.query.roomId) {
-        if (room.password != "none") {
-          for (const room of req.session.authenticatedFor) {
-            if (room.id = req.query.roomId) {
-              if (req.session.admin) {
-                res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
-                return;
-              } else {
-                res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
-                return;
-              }
+    await updateRoomMap();
+    let room = roomMap[req.query.roomId];
+    console.log(room);
+    if (room) {
+      if (room.password != "none") {
+        for (const room of req.session.authenticatedFor) {
+          if (room.id == req.query.roomId) {
+            if (req.session.admin) {
+              res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+              return;
+            } else {
+              res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+              return;
             }
           }
-          res.redirect('/room_password_entry?roomId='+req.query.roomId);
+        }
+        res.redirect('/room_password_entry?roomId='+req.query.roomId);
+        return;
+      } else {
+        if (req.session.admin) {
+          res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
           return;
         } else {
-          if (req.session.admin) {
-            res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
-            return;
-          } else {
-            res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
-            return;
-          }
+          res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+          return;
         }
       }
     }
@@ -417,6 +416,55 @@ app.get('/room', async (req, res) => {
     res.redirect('/login');
   }
 });
+
+
+// app.get('/room', async (req, res) => {
+//   if (req.session.username) {
+//     let rooms = await getRooms();
+//     /*
+//     if the room exisits:
+//       if the room is private:
+//         if you have authentication to enter the room:
+//           join room
+//         else:
+//           redirect to authentication
+//       else:
+//         join the room
+//     else:
+//       send 404
+//     */
+//     for (const room of rooms) {
+//       if (room.id == req.query.roomId) {
+//         if (room.password != "none") {
+//           for (const room of req.session.authenticatedFor) {
+//             if (room.id = req.query.roomId) {
+//               if (req.session.admin) {
+//                 res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+//                 return;
+//               } else {
+//                 res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+//                 return;
+//               }
+//             }
+//           }
+//           res.redirect('/room_password_entry?roomId='+req.query.roomId);
+//           return;
+//         } else {
+//           if (req.session.admin) {
+//             res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+//             return;
+//           } else {
+//             res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+//             return;
+//           }
+//         }
+//       }
+//     }
+//     res.sendStatus(404);
+//   } else {
+//     res.redirect('/login');
+//   }
+// });
 
 app.get('/room_password_entry', (req, res) => {
   if (req.session.username) {
