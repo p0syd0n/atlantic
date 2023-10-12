@@ -8,7 +8,7 @@ var peer = new Peer(username);
 const incomingCallDialog = document.querySelector('#incoming-call-dialog');
 const callInterfaceDialog = document.querySelector('#call-interface-dialog');
 const dialDialog = document.querySelector('#dial-dialog');
-const audioElement = document.querySelector('#audio-element');
+const audioElement = document.getElementById('audio-element');
 const callButton = document.getElementById('call');
 const endCallButton = document.getElementById('end-call-button');
 const callLabel = document.getElementById('call-label');
@@ -38,10 +38,12 @@ peer.on('call', function(call) {
             callInterfaceDialog.showModal();
 
             call.on('stream', function(remoteStream) {
+                alert("Time to fucking call dumbass")
+                beginCallGui();
                 callLabel.innerHTML = "Call In Progress...";
                 // Show the stream in the audio element
                 audioElement.srcObject = remoteStream;
-                beginCallGui();
+                
             });
 
             currentCall = call;
@@ -83,6 +85,9 @@ function makeCall() {
             callInterfaceDialog.showModal();
 
             call.on('stream', function(remoteStream) {
+                alert("Time to fucking call dumbass")
+                beginCallGui();
+                callLabel.innerHTML = "Call In Progress...";
                 // Show stream in the audio element
                 audioElement.srcObject = remoteStream;
             });
@@ -100,7 +105,7 @@ function makeCall() {
 
 function beginCallGui() {
     if (audioElement) {
-        audioElement.play(); // Unpause the audio
-        audioElement.style.visibility = "hidden"; // Hide the audio element
+        audioElement.pause(); // Unpause the audio
+        //audioElement.style.visibility = "hidden"; // Hide the audio element
     }
 }
