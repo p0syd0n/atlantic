@@ -129,7 +129,8 @@ async function addUser(username, password, theme) {
 }
 
 async function removeRoom(roomId) {
-  let response = await executeSQL(`DELETE FROM atlantic.rooms WHERE id="${roomId}"`)
+  let response = await executeSQL(`DELETE FROM atlantic.rooms WHERE id="${roomId}"`);
+  let response2 = await executeSQL(`DELETE FROM atlantic.messages WHERE roomId="${roomId}"`);
   return response;
 }
 

@@ -1,6 +1,13 @@
 /* styles.css */
 
 /* Apply some general styling */
+@media screen and (max-width: 600px) {
+  .column {
+    width: 100%;
+  }
+}
+
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -90,6 +97,10 @@ body {
     position: relative;
     display: inline-flex;
     align-items: center;
+    @media screen and (max-width: 600px) {
+      font-size: 70px
+    }
+    
   }
   
   .room-icon img {
