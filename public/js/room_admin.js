@@ -14,10 +14,11 @@ function addMessage(message, senderData, prefix) {
 
   // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
-  if (prefix == "[ADMIN]") {
-    messageElement.style.color = "blue !important";
-  } else if (prefix == "[OWNER]") {
-    messageElement.style.color = "red !important";
+  console.log("prefix: "+prefix)
+  if (prefix == "[ADMIN] ") {
+    messageElement.style.color = "blue";
+  } else if (prefix == "[OWNER] ") {
+    messageElement.style.color = "red";
   }
   // Create a horizontal line separator element
   const separatorElement = document.createElement('hr');

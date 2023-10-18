@@ -11,10 +11,10 @@ function addMessage(message, prefix) {
   const messageBox = document.querySelector('.message-box');
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
-  if (prefix == "[ADMIN]") {
-    messageElement.style.color = "blue !important";
-  } else if (prefix == "[OWNER]") {
-    messageElement.style.color = "red !important";
+  if (prefix == "[ADMIN] ") {
+    messageElement.style.color = "blue";
+  } else if (prefix == "[OWNER] ") {
+    messageElement.style.color = "red";
   }
   
   messageElement.textContent = message.replace("\n", "<br>");;
