@@ -5,6 +5,10 @@ body {
     padding: 0;
   }
   
+  .issue-text {
+    color: red;
+  }
+
   /* Style for the create account container */
   .create-account-container {
     display: flex;

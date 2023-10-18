@@ -15,6 +15,10 @@
             <input type="password" placeholder="Password" id="password" name="password" required>
             <button type="submit">Create Account</button>
         </form>
+        <% if (issue != null) { %>
+            <p class="issue-text" id="issueText"><%= issue %></p>
+        <% } %>
+        
         <div class="login-link">
             Already have an account? <a href="/login">Login</a>
         </div>

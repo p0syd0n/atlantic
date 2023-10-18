@@ -27,6 +27,7 @@ const secretKey = Buffer.from(process.env.ENCRYPT_KEY, 'hex');
 const legalDocuments = ['legal_1.md', 'legal_2.md', 'legal_3.md'];
 const PORT = process.env.PORT;
 let roomMap = {};
+let usersMap = {};
 
 // Create instances
 const app = express();
@@ -181,7 +182,14 @@ async function updateRoomMap() {
   for(let room of rooms) {
     roomMap[room.id] = room;
   }
-  console.log(roomMap);
+}
+
+async function updateUserMap() {
+  let users = await getUsers();
+  usersMap = {};
+  for(let user of users) {
+    usersMap[user.username] = user;
+  }
 }
 
 
@@ -553,8 +561,14 @@ app.get('/permissions', (req, res) => {
 });
 
 
-app.post('/executeCreateAccount', (req, res) => {
+app.post('/executeCreateAccount', async (req, res) => {
   let { username, password } = req.body;
+  await updateUserMap();
+  let newUserMaybe = usersMap[username]
+  if (newUserMaybe) {
+    res.redirect('/create_account?issue=accountExists');
+    return;
+  }
   addUser(username, password, 'light');
   res.redirect('/permissions');
 });
@@ -581,7 +595,13 @@ app.get('/dm_entry', async (req, res) => {
 });
 
 app.get('/create_account', (req, res) => {
-  res.render('create_account');
+  let { issue } = req.query;
+
+  if (!issue) {
+    issue = null;
+  }
+
+  res.render('create_account', {issue: issue});
 });
 
 app.get('/logout', (req, res) => {
