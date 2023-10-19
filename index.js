@@ -66,7 +66,7 @@ function decrypt(encryptedData) {
   let decryptedData = decipher.update(encryptedData, 'base64', 'utf-8');
   decryptedData += decipher.final('utf-8');
   return decryptedData;
-}
+} // ha ha nice
 
 //defining database/sql functions
 function executeSQL(sql) {
@@ -596,11 +596,12 @@ app.get('/dm_entry', async (req, res) => {
 
 app.get('/create_account', (req, res) => {
   let { issue } = req.query;
-
-  if (!issue) {
-    issue = null;
+  switch (issue) {
+    case 'accountExists':
+      issue = 'This account already exists.';
+    case _:
+      issue = null;
   }
-
   res.render('create_account', {issue: issue});
 });
 
