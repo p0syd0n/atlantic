@@ -5,7 +5,7 @@
     <% if (theme === 'light') { %>
       <link rel="stylesheet" type="text/css" href="/css/main_admin.css">
     <% } else { %>
-        <link rel="stylesheet" type="text/css" href="/css/dark/dark_main.css">
+        <link rel="stylesheet" type="text/css" href="/css/dark/dark_main_admin.css">
     <% } %>
     <link rel="icon" href="/images/atlantic_icon.ico" type="image/x-icon" />
 </head>
@@ -16,7 +16,7 @@
         <a href="/create_room" class="add-room-button">+ Add Room</a>
       </div>
       <div class="rooms">
-        <h2>Chat Rooms</h2>
+        <h2 class="header">Chat Rooms</h2>
         <ul>
           <li>
             <div class="add-room">
@@ -32,9 +32,17 @@
                   <%= room.name %>
                 </a>
                 <div class="room-icon">
-                  <a href="/deleteRoom?roomId=<%= room.id %>">
-                    <img src="/images/delete_room.png" alt="Delete Room">
-                  </a>
+                  <% if (theme === 'dark') { %>
+                    <div >
+                      <a class="delete-room" href="/deleteRoom?roomId=<%= room.id %>">Delete</a>
+                    </div>
+                    
+                  <% } else { %>
+                    <a href="/deleteRoom?roomId=<%= room.id %>">
+                      <img src="/images/delete_room.png" alt="Delete Room">
+                    </a>
+                  <% } %>
+                  <br>
                 </div>
               </div>
             </li>

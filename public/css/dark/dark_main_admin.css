@@ -46,6 +46,10 @@ body {
     min-height: 100vh; /* Set minimum height to 100% of my viewport height:854.5px */
   }
   
+  .header {
+    color: rgb(201, 201, 201);
+  }
+  
   .rooms h2 {
     margin-bottom: 10px;
   }
@@ -119,11 +123,19 @@ body {
     display: inline-flex;
     align-items: center;
   }
+
+  .delete-room {
+    color:crimson;
+    font-family: monospace, monospace;
+    text-decoration: none;
+  }
   
   .room-icon img {
     width: 0.8em; /* Adjust the size as needed */
     height: 0.8em; /* Adjust the size as needed */
     margin-right: 5px; /* Adjust the spacing as needed */
+    width:1rem;
+    height:1rem;
   }
 
   .add-room {
