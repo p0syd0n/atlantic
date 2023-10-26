@@ -41,6 +41,7 @@ body {
   
   .message-box {
     flex: 1;
+    color: rgb(197, 197, 197);
     background-color: #252525; /* Slightly lighter dark background color */
     padding: 10px;
     border-radius: 5px;

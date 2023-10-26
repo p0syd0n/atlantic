@@ -98,12 +98,12 @@ body {
   }
   
   .private-room::after {
-    content: "Private";
+    content: attr(data-password);
     color: #999;
     font-size: 0.8em;
     position: absolute;
     top: 50%;
-    right: -70px; /* Adjust this value for spacing */
+    right: -110px; /* Adjust this value for spacing */
     transform: translateY(-50%);
     opacity: 0;
     transition: opacity 0.3s;
