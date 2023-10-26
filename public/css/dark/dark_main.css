@@ -10,7 +10,13 @@ body {
   flex-direction: column; /* Stack children vertically */
   min-height: 100vh; /* Ensure body takes at least the viewport height */
 }
+.notice {
+  color: rgb(201, 198, 198);
+}
 
+h2 {
+  color: rgb(201, 198, 198);
+}
 html {
   margin: 0px;
   height: 100%;

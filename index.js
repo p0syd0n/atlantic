@@ -198,14 +198,20 @@ function removeDuplicates(arr) {
       index) => arr.indexOf(item) === index);
 }
 
-async function idFromName(name) {
+async function updateRoomNameIdMap(name) {
   let rooms = await getRooms();
+  roomNameIdMap = {};
   for (let room of rooms) {
-    if (room.name == name) {
-      return room.id;
-    }
+    roomNameIdMap[name] = room.id;
   }
-  return 404;
+}
+
+function roomIdFromName(roomName) {
+  try {
+    return roomNameIdMap[roomName];
+  } catch {
+    return 404
+  }
 }
 
 async function roomNameFromOccupants(occupants) {

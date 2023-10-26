@@ -82,6 +82,11 @@ socket.on('connect', () => {
   });
 
   socket.on('loadPreviousMessages', (data) => {
+    // Get the message box
+    const messageBox = document.querySelector('.message-box');
+
+    // Clear all existing messages
+    messageBox.innerHTML = '';
     // Sort the messages based on the __createdtime__ property in ascending order
     let messages = data.messages.sort((message1, message2) => message1.time - message2.time);
   
