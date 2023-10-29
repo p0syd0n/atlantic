@@ -26,6 +26,15 @@ const iv = Buffer.from(process.env.IV, 'hex');
 const secretKey = Buffer.from(process.env.ENCRYPT_KEY, 'hex');
 const legalDocuments = ['legal_1.md', 'legal_2.md', 'legal_3.md'];
 const PORT = process.env.PORT;
+const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*():<>,./?~|1234567890';
+//make sure to change hasInvalidCharacters() function as well^^^
+
+/*
+defining 
+roomId: room
+username: user 
+data maps
+*/
 let roomMap = {};
 let usersMap = {};
 
@@ -283,6 +292,11 @@ function findNotificationManagerSocket(io, username) {
   return null;
 }
 
+function hasInvalidCharacters(inputString) {
+  const characterList = /[qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*():<>,./?~|1234567890]/;
+  return characterList.test(inputString);
+}
+
 
 //let responseTheme = await executeSQL(`UPDATE atlantic.users SET theme = "${theme}" WHERE id="${id}";`);
 
@@ -400,7 +414,6 @@ app.get('/room', async (req, res) => {
   if (req.session.username) {
     await updateRoomMap();
     let room = roomMap[req.query.roomId];
-    console.log(room);
     if (room) {
       if (room.password != "none") {
         for (const room of req.session.authenticatedFor) {
@@ -515,7 +528,6 @@ app.post('/verifyRoomPassword', async (req, res) => {
 
 app.post('/executeLogin', async (req, res) => {
     const { username, password } = req.body;
-    console.log(username, password);
     const users = await getUsers();
     let currentUserVerifiedArgon
     for (const user of users) {
@@ -559,7 +571,7 @@ app.post('/executeLogin', async (req, res) => {
 });
 
 app.get('/temp_notice', (req, res) => {
-  res.send('Atlantic is migrating to the argonid hashing system for authentication. This is more secure, but also slower. It prevents against rainbow table attacks (salt).\n\nWhat do you need to do about this?\nYou can keep things just the way they are, however deleting your account and creating a new one will increase your security.');
+  res.send('Atlantic is migrating to the argonid hashing system for authentication. This is more secure, but also slower. It prevents against rainbow table attacks (salt).<br> <h2>What do you need to do about this?</h2><br>You can keep things just the way they are, however deleting your account and creating a new one will increase your security.');
 });
 
 app.get('/permissions', (req, res) => {
@@ -568,13 +580,22 @@ app.get('/permissions', (req, res) => {
 
 
 app.post('/executeCreateAccount', async (req, res) => {
-  let { username, password } = req.body;
   await updateUserMap();
-  let newUserMaybe = usersMap[username]
+  const { username, password } = req.body;
+  const newUserMaybe = usersMap[username]
   if (newUserMaybe) {
     res.redirect('/create_account?issue=accountExists');
     return;
   }
+  if (hasInvalidCharacters(username)) {
+    res.redirect('/create_account?issue=invalidCharacters');
+    return;
+  }
+  if (hasInvalidCharacters(password)) {
+    res.redirect('/create_account?issue=invalidCharacters');
+    return;
+  }
+
   addUser(username, password, 'light');
   res.redirect('/permissions');
 });
@@ -594,19 +615,28 @@ app.get('/dm_entry', async (req, res) => {
     }
 
     res.render('direct_messages_entry', { theme: req.session.theme, dms:dms, username: req.session.username });
-    console.log("rendered");
   } else {
     res.redirect('/login');
   }
 });
 
+app.get('/restrictedCharacters', (req, res) => {
+  res.write(`<h1>Characters that are allowed: </h1><br>${validCharacters}`);
+  res.send();
+})
+
 app.get('/create_account', (req, res) => {
-  let { issue } = req.query;
+  var { issue } = req.query;
   switch (issue) {
     case 'accountExists':
       issue = 'This account already exists.';
-    case _:
+      break;
+    case 'invalidCharacters':
+      issue = 'Invalid characters detected.';
+      break;
+    default:
       issue = null;
+      break;
   }
   res.render('create_account', {issue: issue});
 });
@@ -676,7 +706,6 @@ io.on('connection', async (socket) => {
     console.log('A user connected');
     if (socket.handshake.query.notificationManager) {
       if (!socket.handshake.session.username) {
-        console.log('no username, destorying');
         socket.disconnect();
         return;
       } else {
@@ -700,7 +729,6 @@ io.on('connection', async (socket) => {
       for (const username_ of roomOccupants) {
         if (username_ == username) {
           let correctRoomName = await roomNameFromOccupants(roomOccupants);
-          console.log(`DM established succesfully: ${roomName}`);
           socket.join(correctRoomName);
           roomId = correctRoomName;
           usernameVerified = true;
@@ -760,7 +788,6 @@ io.on('connection', async (socket) => {
     }
 
     socket.emit('loadPreviousMessages', {messages: formattedMessages});
-    console.log('loading messages');
 
     //forwarding new message
 
@@ -813,16 +840,13 @@ io.on('connection', async (socket) => {
                       target = splitRoomName[1];
                   }
                   recordMessage(data.roomId, messageData.sender, target, encryptedMessage);
-                  console.log(`recorded message dm with room id: ${data.roomId}`);
                   // Find the notification manager socket with a matching username
-                  console.log(target);
                   const notificationManagerSocketId = findNotificationManagerSocket(io, target);
                   if (notificationManagerSocketId) {
                       io.to(notificationManagerSocketId).emit('notification', { message: 'You have a new direct message.' })
                   }
               } else {
                   recordMessage(data.roomId, messageData.sender, null, encryptedMessage);
-                  console.log('recording message not dm');
               }
               if (clientIsAdmin) {
                   messageData.senderData = senderData;
