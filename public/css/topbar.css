@@ -56,6 +56,45 @@ body {
     display: none;
 }
 
+
+.notifications-modal {
+    /* position: fixed; */
+    top: 30%;
+    /* left: 50%;
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    -moz-transform: translateX(-50%) translateY(-50%);
+    -ms-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%); */
+    background-color: #fff;
+    border-radius: 5px;
+    /*padding: 20px;*/
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+}
+
+
+.close-notifications-modal {
+    margin: 0 auto;
+    background-color: #ccc;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.open-notifications-modal {
+    background-color: #ccc;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    position: absolute;
+    cursor: pointer;
+    /*margin-right: 260px; /* This adds space from the right */
+    /*margin-right: 20px;  /* This adds space from the left */
+    left: 10px;
+}
+
+
 /* Style for the close button in the modal */
 #close-modal {
     background-color: #ccc;

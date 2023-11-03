@@ -571,7 +571,7 @@ app.post('/executeLogin', async (req, res) => {
 });
 
 app.get('/temp_notice', (req, res) => {
-  res.send('Atlantic is migrating to the argonid hashing system for authentication. This is more secure, but also slower. It prevents against rainbow table attacks (salt).<br> <h2>What do you need to do about this?</h2><br>You can keep things just the way they are, however deleting your account and creating a new one will increase your security.');
+  res.send('Atlantic is migrating to the argon-id hashing system for authentication. This is more secure, but also slower. It prevents against rainbow table attacks (salt).<br> <h2>What do you need to do about this?</h2><br>You can keep things just the way they are, however deleting your account and creating a new one will increase your security.');
 });
 
 app.get('/permissions', (req, res) => {
@@ -843,7 +843,7 @@ io.on('connection', async (socket) => {
                   // Find the notification manager socket with a matching username
                   const notificationManagerSocketId = findNotificationManagerSocket(io, target);
                   if (notificationManagerSocketId) {
-                      io.to(notificationManagerSocketId).emit('notification', { message: 'You have a new direct message.' })
+                      io.to(notificationManagerSocketId).emit('notification', { message: 'You have a new direct message.', sender: messageData.sender })
                   }
               } else {
                   recordMessage(data.roomId, messageData.sender, null, encryptedMessage);

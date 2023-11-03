@@ -50,6 +50,9 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
 <div class="top-bar">
+    <div class="notifications" id="notifications-icon">
+        <button class="open-notifications-modal" id="notifications-count">0</button>
+    </div>    
     <div class="username">
         <a class="username-link" id="open-settings-button"><%= username %>: Settings</a>
         <a class="username-link" href="/smurfcat"> | </a>
@@ -111,6 +114,20 @@
     <input type="text" id="target-username-input">
     <button id="call-button">Call</button>
 </dialog>
+
+<!-- Notifications modal dialog -->
+<dialog id="notifications-dialog" class="notifications-modal"> <!-- Add your custom CSS classes here -->
+    <div class="modal-content">
+        <div class="modal-header">
+            <button id="close-notifications" class="close-notifications-modal">Close</button>
+        </div>
+        <div class="modal-body">
+            <h2>Notifications</h2>
+            <div id="notifications-list"></div>
+        </div>
+    </div>
+</dialog>
+
 
 <p id="sessionUsername" value="<%= username %>" hidden><%= username %></p>
 
