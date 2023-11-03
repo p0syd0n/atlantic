@@ -294,7 +294,7 @@ function findNotificationManagerSocket(io, username) {
 
 function hasInvalidCharacters(inputString) {
   const characterList = /[qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*():<>,./?~|1234567890]/;
-  return characterList.test(inputString);
+  return !characterList.test(inputString);
 }
 
 
