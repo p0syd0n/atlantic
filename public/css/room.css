@@ -31,6 +31,10 @@ body {
   max-height: calc(100vh - 150px);
 }
 
+.message-link {
+  color: rgb(80, 4, 4);
+}
+
 .message-box {
   flex: 1;
   background-color: #fff;

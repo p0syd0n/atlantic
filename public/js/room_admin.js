@@ -12,6 +12,14 @@ function addMessage(message, senderData, prefix) {
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
 
+  // Regular expression to match URLs
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  // Replace URLs in the message with anchor tags
+  message = message.replace(urlRegex, function(url) {
+    return '<a class="message-link" href="' + url + '" target="_blank">' + url + '</a>';
+  });
+
   // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
   console.log("prefix: "+prefix)
@@ -33,6 +41,9 @@ function addMessage(message, senderData, prefix) {
 
   // Set the content of the tooltip (senderData)
   tooltip.innerHTML = JSON.stringify(senderData, null, 2); // Prettify the JSON
+  //senderData.array.forEach(element => {
+    
+  //});
 
   // Append the tooltip to the tooltip container
   tooltipContainer.appendChild(tooltip);
@@ -42,6 +53,7 @@ function addMessage(message, senderData, prefix) {
   messageBox.appendChild(messageElement);
   messageBox.appendChild(separatorElement);
 }
+
 
 // Function to handle sending messages
 function sendMessage() {

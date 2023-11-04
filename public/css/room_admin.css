@@ -51,6 +51,10 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   
+  .message-link {
+    color: rgb(80, 4, 4);
+  }
+  
   .message-input {
     flex: 1;
     padding: 10px;

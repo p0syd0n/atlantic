@@ -44,6 +44,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const maxSecurity = true; // ok encryption is on and working
+const adminTooltips = false;
 let onlineClients = {};
 
 //defining security functions
@@ -796,7 +797,7 @@ io.on('connection', async (socket) => {
           return;
       }
       // Harvesting data about sender
-      if (!maxSecurity) {
+      if (adminTooltips) {
           var senderData = {
               clientIp,
               isAdmin,

@@ -16,8 +16,16 @@ function addMessage(message, prefix) {
   } else if (prefix == "[OWNER] ") {
     messageElement.style.color = "red";
   }
-  
-  messageElement.textContent = message.replace("\n", "<br>");;
+
+  // Regular expression to match URLs
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  // Replace URLs in the message with anchor tags
+  message = message.replace(urlRegex, function(url) {
+    return '<a class="message-link" href="' + url + '" target="_blank">' + url + '</a>';
+  });
+
+  messageElement.innerHTML = message.replace("\n", "<br>");
   messageBox.appendChild(messageElement);
 }
 
