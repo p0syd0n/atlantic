@@ -1,6 +1,6 @@
 // Import required modules
-//v3.0
-//audio added
+//v3.5
+//new placeholder in message box in rooms
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -13,7 +13,7 @@ import fetch from 'node-fetch';
 import { marked } from 'marked';
 import fs from 'fs';
 import dotenv from 'dotenv';
-import expressSocketIO from 'express-socket.io-session'; // Import express-socket.io-session
+import expressSocketIO from 'express-socket.io-session';
 import argon2 from 'argon2';
 
 dotenv.config();
@@ -26,7 +26,7 @@ const iv = Buffer.from(process.env.IV, 'hex');
 const secretKey = Buffer.from(process.env.ENCRYPT_KEY, 'hex');
 const legalDocuments = ['legal_1.md', 'legal_2.md', 'legal_3.md'];
 const PORT = process.env.PORT;
-const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*():<>,./?~|1234567890';
+const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*():,./?~|1234567890';
 //make sure to change hasInvalidCharacters() function as well^^^
 
 /*
@@ -76,7 +76,7 @@ function decrypt(encryptedData) {
   let decryptedData = decipher.update(encryptedData, 'base64', 'utf-8');
   decryptedData += decipher.final('utf-8');
   return decryptedData;
-} // ha ha nice
+}
 
 //defining database/sql functions
 function executeSQL(sql) {
@@ -294,7 +294,7 @@ function findNotificationManagerSocket(io, username) {
 }
 
 function hasInvalidCharacters(inputString) {
-  const characterList = /[qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*():<>,./?~|1234567890]/;
+  const characterList = /[qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*():,./?~|1234567890]/;
   return !characterList.test(inputString);
 }
 
@@ -793,6 +793,9 @@ io.on('connection', async (socket) => {
     //forwarding new message
 
     socket.on('newMessage', async (data) => {
+      if (hasInvalidCharacters(data.message)) {
+        return;
+      }
       if (Date.now() - lastTimeSent <= 3500) {
           return;
       }
