@@ -1,6 +1,6 @@
 // Import required modules
-//v3.6
-//changed some cookie thing idk not very relevant
+//v3.7
+//again not relevant, changed a tiny formatting and removed notice on main.ejs
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -587,12 +587,10 @@ app.post('/executeCreateAccount', async (req, res) => {
   if (newUserMaybe) {
     res.redirect('/create_account?issue=accountExists');
     return;
-  }
-  if (hasInvalidCharacters(username)) {
+  } else if (hasInvalidCharacters(username)) {
     res.redirect('/create_account?issue=invalidCharacters');
     return;
-  }
-  if (hasInvalidCharacters(password)) {
+  } else if (hasInvalidCharacters(password)) {
     res.redirect('/create_account?issue=invalidCharacters');
     return;
   }
