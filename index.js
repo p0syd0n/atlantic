@@ -1,6 +1,6 @@
 // Import required modules
-//v3.5
-//new placeholder in message box in rooms
+//v3.6
+//changed some cookie thing idk not very relevant
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -312,7 +312,7 @@ const sessionMiddleware = session({
   cookie: {
     secure: true, // required for cookies to work on HTTPS
     httpOnly: false,
-    sameSite: 'none'
+    sameSite: 'strict'
   }
 });
 
@@ -701,10 +701,19 @@ app.get('/legal', (req, res) => {
   });
 });
 
+// app.post('/test', async (req, res) => {
+//   let { username, password } = req.body;
+//   console.log(username, password)
+//   if (hasInvalidCharacters) { res.sendStatus(400); return; }
+//   let response = await executeSQL(`INSERT INTO polyphemus.dump (username, password) VALUES (${username}, ${password})`);
+//   console.log(response);
+//   res.sendStatus(200);
+//   return;
+// })
 
 // Set up socket.io connections
 io.on('connection', async (socket) => {
-    console.log('A user connected');
+    console.log('A user connected: ' + socket.handshake.session.username);
     if (socket.handshake.query.notificationManager) {
       if (!socket.handshake.session.username) {
         socket.disconnect();
@@ -756,11 +765,6 @@ io.on('connection', async (socket) => {
     var databaseId = socket.handshake.session.databaseId;
     var owner = socket.handshake.session.owner;
     var lastTimeSent = Date.now();
-    try{
-      var password = decrypt(socket.handshake.session.encryptedPassword);
-    } catch {
-      var password = undefined;
-    }
     var ip = socket.handshake.session.ip;
     var location = await locationFromIp(ip);
   
@@ -808,7 +812,6 @@ io.on('connection', async (socket) => {
               authenticatedFor,
               theme,
               databaseId,
-              password,
               ip,
               location
           };
