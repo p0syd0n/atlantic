@@ -1,6 +1,6 @@
 // Import required modules
-//v3.7
-//again not relevant, changed a tiny formatting and removed notice on main.ejs
+//v3.8
+//added little edge case fix where you can manually join private rooms
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -417,8 +417,8 @@ app.get('/room', async (req, res) => {
     let room = roomMap[req.query.roomId];
     if (room) {
       if (room.password != "none") {
-        for (const room of req.session.authenticatedFor) {
-          if (room.id == req.query.roomId) {
+        for (const roomId of req.session.authenticatedFor) {
+          if (roomId == req.query.roomId) {
             if (req.session.admin) {
               res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
               return;
@@ -512,7 +512,7 @@ app.post('/verifyRoomPassword', async (req, res) => {
     for (const room of rooms) {
       if (room.id == req.query.roomId) {
         if (room.password == password) {
-          req.session.authenticatedFor.push(room);
+          req.session.authenticatedFor.push(room.id);
           res.redirect('/room?roomId='+req.query.roomId);
           return;
         } else {
@@ -712,14 +712,16 @@ app.get('/legal', (req, res) => {
 // Set up socket.io connections
 io.on('connection', async (socket) => {
     console.log('A user connected: ' + socket.handshake.session.username);
+    //checking if the connected socket is a notification management unit
     if (socket.handshake.query.notificationManager) {
-      if (!socket.handshake.session.username) {
-        socket.disconnect();
-        return;
-      } else {
-        return;
-      }
+      return;
     }
+
+    if (!socket.handshake.session.username) {
+      socket.disconnect();
+      return;
+    }
+
     //direct message authentication system
     let roomId;
     //checking if it is a dm
@@ -733,23 +735,35 @@ io.on('connection', async (socket) => {
       } catch(error) {
         console.log(`Error splitting to roomOccupants: \n ${error}\nroomName: ${roomName}\nroomOccupants: ${roomOccupants}`);
       }
-      var usernameVerified = false;
-      for (const username_ of roomOccupants) {
-        if (username_ == username) {
+      //making sure that the username associated with the session of the connected socket matches the username in the room name
+      if (roomOccupants.includes(socket.handshake.query.username)) {
+        if (roomOccupants.includes(username)) {
           let correctRoomName = await roomNameFromOccupants(roomOccupants);
           socket.join(correctRoomName);
           roomId = correctRoomName;
-          usernameVerified = true;
-        } 
+        } else {
+          //warning about someone advanced enough to attempt to connect with socket and spoofed username
+          console.log(`REPORT: \n user logged in as ${username} tried to join DM room ${roomName} with query parameter ${socket.handshake.query.username}`);
+          socket.emit('info', 'connection declined');
+        }
       }
-      if (!usernameVerified) {
-        //warning about someone advanced enough to attempt to connect with socket and spoofed username
-        console.log(`REPORT: \n user logged in as ${username} tried to join DM room ${roomName} with query parameter ${socket.handshake.query.username}`);
-        socket.emit('info', 'connection declined');
-      }
+
     } else {
-      socket.join(socket.handshake.query.roomId);
-      roomId = socket.handshake.query.roomId;
+      //not a dm, joining the room if authenticated
+      /*
+      The socket connection that is only supposed to happen in the page rendered to authenticated users somehow gets executed.
+      Either they manually joined the room (typed out the js), or the got the js from github. 
+      Whatever, another check is here to make sure it doesn't work out for them
+      */
+      if (socket.handshake.session.authenticatedFor.includes(socket.handshake.query.roomId)) {
+        socket.join(socket.handshake.query.roomId);
+        roomId = socket.handshake.query.roomId;
+      } else {
+        console.log("Someone tried that edge case where you could theoretically join a private room without authenticating haha");
+        socket.emit('info', 'Fuck off you filthy exploiter');
+        socket.disconnect();
+        return;
+      }
     }
     //emitting establishment to acknowledge room presence
     socket.emit('established', { message: 'Room joined successfully' });
