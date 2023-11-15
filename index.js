@@ -1,6 +1,6 @@
 // Import required modules
-//v3.8
-//added little edge case fix where you can manually join private rooms
+//v3.9
+//info showing for admin_room.js, fixed the last commit thing, and autofocus in chat rooms
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -103,6 +103,8 @@ function executeSQL(sql) {
     });
   });
 }
+
+
 
 async function recordMessage(room_name_id, sender, target = null, content) {
   var response;
@@ -221,6 +223,15 @@ function roomIdFromName(roomName) {
     return roomNameIdMap[roomName];
   } catch {
     return 404
+  }
+}
+
+async function isPrivate(roomId) {
+  updateRoomMap();
+  if (roomMap[`${roomId}`]['password'] === 'none') {
+    console.log(false)
+  } else {
+    return true;
   }
 }
 
@@ -755,16 +766,25 @@ io.on('connection', async (socket) => {
       Either they manually joined the room (typed out the js), or the got the js from github. 
       Whatever, another check is here to make sure it doesn't work out for them
       */
+
       if (socket.handshake.session.authenticatedFor.includes(socket.handshake.query.roomId)) {
         socket.join(socket.handshake.query.roomId);
         roomId = socket.handshake.query.roomId;
       } else {
-        console.log("Someone tried that edge case where you could theoretically join a private room without authenticating haha");
-        socket.emit('info', 'Fuck off you filthy exploiter');
-        socket.disconnect();
-        return;
+        const isPrivateRoom = await isPrivate(socket.handshake.query.roomId);
+        if (isPrivateRoom) {
+          console.log(socket.handshake.query.roomId);
+          console.log("Someone tried that edge case where you could theoretically join a private room without authenticating haha");
+          socket.emit('info', 'Fuck off you filthy exploiter');
+          socket.disconnect();
+          return;
+        } else {
+          socket.join(socket.handshake.query.roomId);
+          roomId = socket.handshake.query.roomId;
+        }
       }
     }
+
     //emitting establishment to acknowledge room presence
     socket.emit('established', { message: 'Room joined successfully' });
 

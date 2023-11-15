@@ -93,6 +93,10 @@ socket.on('connect', () => {
     addMessage(prefix + data.sender + ': ' + data.message, data.senderData, prefix);
   });
 
+  socket.on('info', (data) => {
+    console.log('info: '+data);
+  });
+
   socket.on('loadPreviousMessages', (data) => {
     // Get the message box
     const messageBox = document.querySelector('.message-box');
