@@ -130,4 +130,9 @@ socket.on('connect', () => {
 
 socket.on('established', (response) => {
   console.log('Established:', response);
+  // Get the message box
+  const messageBox = document.querySelector('.message-box');
+
+  // Clear all existing messages
+  messageBox.innerHTML = '';
 });

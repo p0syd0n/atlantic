@@ -1,6 +1,6 @@
 // Import required modules
-//v3.9
-//info showing for admin_room.js, fixed the last commit thing, and autofocus in chat rooms
+//4.0
+//prevented message duplication on re-establishment in room.js and room_admin.js
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
