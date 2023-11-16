@@ -1,6 +1,6 @@
 // Import required modules
-//4.0
-//prevented message duplication on re-establishment in room.js and room_admin.js
+//4.1
+//fixed dark mode css for room creation pages
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -356,11 +356,18 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/create_room', (req, res) => {
-  if (req.session.admin) {
-    res.render('create_room_admin', {theme: req.session.theme, username: req.session.username});
+  if (req.session.username) {
+    if (req.session.admin) {
+      res.render('create_room_admin', {theme: req.session.theme, username: req.session.username});
+      return;
+    } else {
+      res.render('create_room', {theme: req.session.theme, username: req.session.username});
+      return;
+    }
   } else {
-    res.render('create_room', {theme: req.session.theme, username: req.session.username});
+    res.redirect('/login')
   }
+
 });
 
 app.post('/executeCreateRoom', async (req, res) => {
