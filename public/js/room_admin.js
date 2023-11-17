@@ -7,19 +7,19 @@ function emitMessage(message) {
 }
 
 // Function to add a new message to the UI
-function addMessage(message, senderData, prefix) {
+function addMessage(message, senderData, prefix, hasImage=false) {
   const messageBox = document.querySelector('.message-box');
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
+  if (!hasImage) {
+    // Regular expression to match URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
 
-  // Regular expression to match URLs
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-  // Replace URLs in the message with anchor tags
-  message = message.replace(urlRegex, function(url) {
-    return '<a class="message-link" href="' + url + '" target="_blank">' + url + '</a>';
-  });
-
+    // Replace URLs in the message with anchor tags
+    message = message.replace(urlRegex, function(url) {
+      return '<a class="message-link" href="' + url + '" target="_blank">' + url + '</a>';
+    });
+  }
   // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
   console.log("prefix: "+prefix)
@@ -86,15 +86,25 @@ socket.on('connect', () => {
     let prefix;
     if (data.admin) {
       prefix = "[ADMIN] ";
-    } 
-    if (data.owner) {
+    } else if (data.owner) {
       prefix = "[OWNER] ";
     }
-    addMessage(prefix + data.sender + ': ' + data.message, data.senderData, prefix);
+
+    if (data.message.includes('{img}')) {
+      const imageUrl = data.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
+      data.message = `<img width=200 height=200 src="${imageUrl}"></img>`;
+    }
+
+    addMessage(prefix + data.sender + ': ' + data.message, data.senderData, prefix, hasImage=true);
   });
 
   socket.on('info', (data) => {
     console.log('info: '+data);
+  });
+
+  socket.on('replacePlaceholderText', (data) => {
+    const messageInput = document.getElementById('message-input');
+    messageInput.placeholder = data;
   });
 
   socket.on('loadPreviousMessages', (data) => {

@@ -7,26 +7,51 @@ function emitMessage(message) {
 }
 
 // Function to add a new message to the UI
-function addMessage(message, prefix) {
+function addMessage(message, senderData, prefix, hasImage=false) {
   const messageBox = document.querySelector('.message-box');
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
+  if (!hasImage) {
+    // Regular expression to match URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    // Replace URLs in the message with anchor tags
+    message = message.replace(urlRegex, function(url) {
+      return '<a class="message-link" href="' + url + '" target="_blank">' + url + '</a>';
+    });
+  }
+  // Set the message text content and replace newlines
+  messageElement.innerHTML = message.replace(/\n/g, '<br>');
+  console.log("prefix: "+prefix)
   if (prefix == "[ADMIN] ") {
     messageElement.style.color = "blue";
   } else if (prefix == "[OWNER] ") {
     messageElement.style.color = "red";
   }
+  // Create a horizontal line separator element
+  const separatorElement = document.createElement('hr');
 
-  // Regular expression to match URLs
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // Create a tooltip container
+  const tooltipContainer = document.createElement('div');
+  tooltipContainer.classList.add('tooltip-container');
 
-  // Replace URLs in the message with anchor tags
-  message = message.replace(urlRegex, function(url) {
-    return '<a class="message-link" href="' + url + '" target="_blank">' + url + '</a>';
-  });
+  // Create a hidden tooltip element
+  const tooltip = document.createElement('div');
+  tooltip.classList.add('tooltip');
 
-  messageElement.innerHTML = message.replace("\n", "<br>");
+  // Set the content of the tooltip (senderData)
+  tooltip.innerHTML = JSON.stringify(senderData, null, 2); // Prettify the JSON
+  //senderData.array.forEach(element => {
+    
+  //});
+
+  // Append the tooltip to the tooltip container
+  tooltipContainer.appendChild(tooltip);
+
+  // Append both the message and the tooltip container to the message box
+  messageElement.appendChild(tooltipContainer);
   messageBox.appendChild(messageElement);
+  messageBox.appendChild(separatorElement);
 }
 
 // Function to handle sending messages
@@ -59,18 +84,28 @@ socket.on('connect', () => {
 
   socket.on('newMessageForwarding', (data) => {
     console.log(data);
-    let prefix = "";
+    let prefix;
     if (data.admin) {
       prefix = "[ADMIN] ";
-    } 
-    if (data.owner) {
+    } else if (data.owner) {
       prefix = "[OWNER] ";
     }
-    addMessage(prefix + data.sender + ': ' + data.message, prefix);
+
+    if (data.message.includes('{img}')) {
+      const imageUrl = data.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
+      data.message = `<img width=200 height=200 src="${imageUrl}"></img>`;
+    }
+
+    addMessage(prefix + data.sender + ': ' + data.message, data.senderData, prefix, hasImage=true);
   });
 
   socket.on('info', (data) => {
     console.log('info: '+data);
+  });
+
+  socket.on('replacePlaceholderText', (data) => {
+    const messageInput = document.getElementById('message-input');
+    messageInput.placeholder = data;
   });
 
   socket.on('loadPreviousMessages', (data) => {

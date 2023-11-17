@@ -1,6 +1,6 @@
 // Import required modules
-//4.1
-//fixed dark mode css for room creation pages
+//4.2
+//added images in chat, added placeholder event listener that updates on invalid character messages, fixed some favicon loading issues
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -229,7 +229,6 @@ function roomIdFromName(roomName) {
 async function isPrivate(roomId) {
   updateRoomMap();
   if (roomMap[`${roomId}`]['password'] === 'none') {
-    console.log(false)
   } else {
     return true;
   }
@@ -780,7 +779,6 @@ io.on('connection', async (socket) => {
       } else {
         const isPrivateRoom = await isPrivate(socket.handshake.query.roomId);
         if (isPrivateRoom) {
-          console.log(socket.handshake.query.roomId);
           console.log("Someone tried that edge case where you could theoretically join a private room without authenticating haha");
           socket.emit('info', 'Fuck off you filthy exploiter');
           socket.disconnect();
@@ -810,7 +808,7 @@ io.on('connection', async (socket) => {
     
 
     socket.on('disconnect', async () => {
-        console.log('A user disconnected');
+        console.log('A user disconnected: ' + socket.handshake.session.username);
     });
 
     //loading previous messages
@@ -837,6 +835,8 @@ io.on('connection', async (socket) => {
 
     socket.on('newMessage', async (data) => {
       if (hasInvalidCharacters(data.message)) {
+        socket.emit('info', 'Invalid Characters Detected');
+        socket.emit('replacePlaceholderText', 'Invalid Characters Detected')
         return;
       }
       if (Date.now() - lastTimeSent <= 3500) {
