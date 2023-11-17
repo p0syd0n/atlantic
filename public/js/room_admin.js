@@ -86,13 +86,14 @@ socket.on('connect', () => {
     let prefix;
     if (data.admin) {
       prefix = "[ADMIN] ";
-    } else if (data.owner) {
+    } 
+    if (data.owner) {
       prefix = "[OWNER] ";
     }
 
     if (data.message.includes('{img}')) {
       const imageUrl = data.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
-      data.message = `<img width=200 height=200 src="${imageUrl}"></img>`;
+      data.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
     }
 
     addMessage(prefix + data.sender + ': ' + data.message, data.senderData, prefix, hasImage=true);
