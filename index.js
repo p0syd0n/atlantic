@@ -1,6 +1,6 @@
 // Import required modules
-//4.4
-//stuff automatically scrolls down
+//4.5
+//images load from database
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';

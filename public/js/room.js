@@ -125,7 +125,14 @@ socket.on('connect', () => {
     let messages = data.messages.sort((message1, message2) => message1.time - message2.time);
   
     for (const message of messages) {
-      addMessage(`${message.from}: ${message.message}`);
+      var hasImage = false;
+      if (message.message.includes('{img}')) {
+        const imageUrl = message.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
+        message.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
+        hasImage = true;
+      }
+
+      addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, hasImage=hasImage);
     }
     scrollDown()
   });
