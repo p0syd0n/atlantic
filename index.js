@@ -1,6 +1,6 @@
 // Import required modules
-//4.2
-//added images in chat, added placeholder event listener that updates on invalid character messages, fixed some favicon loading issues
+//4.3
+//image resization
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
