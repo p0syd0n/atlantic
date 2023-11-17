@@ -1,6 +1,6 @@
 // Import required modules
-//4.3
-//image resization
+//4.4
+//stuff automatically scrolls down
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -690,6 +690,19 @@ app.get('/dm', async (req, res) => {
 
 app.get('/help', (req, res) => {
   const markdownFilePath = path.join(__dirname, 'public', 'views', 'help.md');
+  fs.readFile(markdownFilePath, 'utf-8', (err, markdownContent) => {
+    if (err) {
+      console.error('Error reading markdown file:', err);
+      res.sendStatus(500);
+    } else {
+      const htmlContent = marked(markdownContent);
+      res.send(htmlContent);
+    }
+  });
+});
+
+app.get('/image_help', (req, res) => {
+  const markdownFilePath = path.join(__dirname, 'public', 'views', 'image_help.md');
   fs.readFile(markdownFilePath, 'utf-8', (err, markdownContent) => {
     if (err) {
       console.error('Error reading markdown file:', err);

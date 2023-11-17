@@ -1,6 +1,11 @@
 // Connect to the Socket.IO server
 const socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
 
+function scrollDown() {
+  const messageBox = document.querySelector('.message-box');
+  messageBox.scrollTop = messageBox.scrollHeight;
+}
+
 // Function to emit a new message
 function emitMessage(message) {
   socket.emit('newMessage', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML, message: message});
@@ -9,6 +14,7 @@ function emitMessage(message) {
 // Function to add a new message to the UI
 function addMessage(message, senderData, prefix, hasImage=false) {
   const messageBox = document.querySelector('.message-box');
+  scrollDown();
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
   if (!hasImage) {
@@ -111,7 +117,6 @@ socket.on('connect', () => {
   socket.on('loadPreviousMessages', (data) => {
     // Get the message box
     const messageBox = document.querySelector('.message-box');
-
     // Clear all existing messages
     messageBox.innerHTML = '';
     // Sort the messages based on the __createdtime__ property in ascending order
@@ -120,6 +125,7 @@ socket.on('connect', () => {
     for (const message of messages) {
       addMessage(`${message.from}: ${message.message}`);
     }
+    scrollDown()
   });
   
 
