@@ -13,7 +13,7 @@ function emitMessage(message) {
 
 
 // Function to add a new message to the UI
-function addMessage(message, senderData, prefix, hasImage=false) {
+function addMessage(message, prefix, hasImage=false) {
   scrollDown()
   const messageBox = document.querySelector('.message-box');
   const messageElement = document.createElement('div');
@@ -38,25 +38,6 @@ function addMessage(message, senderData, prefix, hasImage=false) {
   // Create a horizontal line separator element
   const separatorElement = document.createElement('hr');
 
-  // Create a tooltip container
-  const tooltipContainer = document.createElement('div');
-  tooltipContainer.classList.add('tooltip-container');
-
-  // Create a hidden tooltip element
-  const tooltip = document.createElement('div');
-  tooltip.classList.add('tooltip');
-
-  // Set the content of the tooltip (senderData)
-  tooltip.innerHTML = JSON.stringify(senderData, null, 2); // Prettify the JSON
-  //senderData.array.forEach(element => {
-    
-  //});
-
-  // Append the tooltip to the tooltip container
-  tooltipContainer.appendChild(tooltip);
-
-  // Append both the message and the tooltip container to the message box
-  messageElement.appendChild(tooltipContainer);
   messageBox.appendChild(messageElement);
   messageBox.appendChild(separatorElement);
 }
@@ -104,7 +85,7 @@ socket.on('connect', () => {
       data.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
     }
 
-    addMessage(prefix + data.sender + ': ' + data.message, data.senderData, prefix, hasImage=true);
+    addMessage(prefix + data.sender + ': ' + data.message, prefix, hasImage=true);
   });
 
   socket.on('info', (data) => {
@@ -132,7 +113,7 @@ socket.on('connect', () => {
         hasImage = true;
       }
 
-      addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, hasImage=hasImage);
+      addMessage(`${message.from}: ${message.message}`, prefix=false, hasImage=hasImage);
     }
     scrollDown()
   });

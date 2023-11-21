@@ -1,6 +1,6 @@
 // Import required modules
-//4.5
-//images load from database
+//4.6
+//why the fuck did the room.js have the tooltips code????? removed that shit, and also killed bug where it said data: mesage loaded from database
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
