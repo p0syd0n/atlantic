@@ -1,6 +1,6 @@
 // Import required modules
-//4.7
-//tried to fix dupe message glitch again
+//4.8 >>update variable too!!<<
+//actually fixed message dupe shit yeehaw
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -46,6 +46,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
+const version = 4.8;
 
 //defining security functions
 
@@ -341,9 +342,9 @@ app.get('/', async (req, res) => {
   if (req.session.username) {
     let rooms = await getRooms();
     if (req.session.admin) {
-      res.render('main_admin', {rooms: rooms, username: req.session.username, theme: req.session.theme});
+      res.render('main_admin', {rooms: rooms, username: req.session.username, theme: req.session.theme, version: version});
     } else {
-      res.render('main', {rooms: rooms, username: req.session.username, theme: req.session.theme});
+      res.render('main', {rooms: rooms, username: req.session.username, theme: req.session.theme, version: version});
     }
   } else {
     res.redirect('/login');
@@ -351,7 +352,7 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.render('login');
+    res.render('login', {version: version});
 });
 
 app.get('/create_room', (req, res) => {

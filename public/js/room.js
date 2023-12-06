@@ -39,6 +39,7 @@ function addMessage(message, prefix, hasImage=false) {
 
   messageBox.appendChild(messageElement);
   messageBox.appendChild(separatorElement);
+  scrollDown();
 }
 
 // Function to handle sending messages
@@ -83,7 +84,7 @@ socket.on('connect', () => {
       data.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
     }
 
-    addMessage(prefix + data.sender + ': ' + data.message, prefix, hasImage=true);
+    addMessage(prefix ? prefix : "" + data.sender + ': ' + data.message, prefix, hasImage=true);
   });
 
   socket.on('info', (data) => {
@@ -98,23 +99,25 @@ socket.on('connect', () => {
   socket.on('loadPreviousMessages', (data) => {
     // Get the message box
     const messageBox = document.querySelector('.message-box');
-    // Clear all existing messages
-    messageBox.innerHTML = '';
+    // Do not clear existing messages
+  
     // Sort the messages based on the __createdtime__ property in ascending order
     let messages = data.messages.sort((message1, message2) => message1.time - message2.time);
   
-    for (const message of messages) {
-      var hasImage = false;
+    messages.forEach(message => {
+      // Append each message to the message box
       if (message.message.includes('{img}')) {
-        const imageUrl = message.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
+        const imageUrl = message.message.split('{img}')[1].trim();
         message.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
-        hasImage = true;
+        addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=true);
+      } else {
+        addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=false);
       }
-
-      addMessage(`${message.from}: ${message.message}`, prefix=false, hasImage=hasImage);
-    }
-    scrollDown()
+    });
+  
+    scrollDown(); // Scroll to the bottom after adding messages
   });
+  
   
   // Event listener for sending messages on button click
   document.getElementById('send-button').addEventListener('click', sendMessage);

@@ -57,6 +57,7 @@ function addMessage(message, senderData, prefix, hasImage=false) {
   messageElement.appendChild(tooltipContainer);
   messageBox.appendChild(messageElement);
   messageBox.appendChild(separatorElement);
+  scrollDown();
 }
 
 
@@ -87,6 +88,7 @@ socket.on('connect', () => {
   
   // Event listener for receiving new messages
   socket.on('newMessageForwarding', (data) => {
+    console.log(data)
     let prefix;
     if (data.admin) {
       prefix = "[ADMIN] ";
