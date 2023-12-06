@@ -29,7 +29,6 @@ function addMessage(message, prefix, hasImage=false) {
   }
   // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
-  console.log("prefix: "+prefix)
   if (prefix == "[ADMIN] ") {
     messageElement.style.color = "blue";
   } else if (prefix == "[OWNER] ") {
@@ -71,7 +70,6 @@ socket.on('connect', () => {
   // Event listener for receiving new messages
 
   socket.on('newMessageForwarding', (data) => {
-    console.log(data);
     let prefix;
     if (data.admin) {
       prefix = "[ADMIN] ";
@@ -118,11 +116,6 @@ socket.on('connect', () => {
     scrollDown()
   });
   
-
-
-
-
-
   // Event listener for sending messages on button click
   document.getElementById('send-button').addEventListener('click', sendMessage);
 
@@ -139,7 +132,10 @@ socket.on('established', (response) => {
   console.log('Established:', response);
   // Get the message box
   const messageBox = document.querySelector('.message-box');
-
+  const inputBox = document.getElementById('message-input');
+  inputBox.removeAttribute("disabled");
+  inputBox.focus()
+  console.log('message-input enabled and focused');
   // Clear all existing messages
   messageBox.innerHTML = '';
 });

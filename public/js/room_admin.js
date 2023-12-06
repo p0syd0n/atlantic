@@ -13,7 +13,6 @@ function emitMessage(message) {
 
 // Function to add a new message to the UI
 function addMessage(message, senderData, prefix, hasImage=false) {
-  console.log(hasImage)
   const messageBox = document.querySelector('.message-box');
   scrollDown();
   const messageElement = document.createElement('div');
@@ -29,7 +28,6 @@ function addMessage(message, senderData, prefix, hasImage=false) {
   }
   // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
-  console.log("prefix: "+prefix)
   if (prefix == "[ADMIN] ") {
     messageElement.style.color = "blue";
   } else if (prefix == "[OWNER] ") {
@@ -89,7 +87,6 @@ socket.on('connect', () => {
   
   // Event listener for receiving new messages
   socket.on('newMessageForwarding', (data) => {
-    console.log(data);
     let prefix;
     if (data.admin) {
       prefix = "[ADMIN] ";
@@ -127,12 +124,10 @@ socket.on('connect', () => {
       if (message.message.includes('{img}')) {
         const imageUrl = message.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
         message.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
-        console.log(message.message);
         addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=true);
-        return;
+      } else {
+        addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=false);
       }
-
-      addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=false);
     }
     scrollDown()
   });
@@ -158,7 +153,10 @@ socket.on('established', (response) => {
   console.log('Established:', response);
   // Get the message box
   const messageBox = document.querySelector('.message-box');
-
+  const inputBox = document.getElementById('message-input');
+  inputBox.removeAttribute("disabled");
+  inputBox.focus();
+  console.log('message-input enabled and focused');
   // Clear all existing messages
   messageBox.innerHTML = '';
 });
