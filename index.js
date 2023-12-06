@@ -1,6 +1,6 @@
 // Import required modules
-//4.9 >>update variable too!!<<
-//fixed dark mode bugs
+//5.0 >>update variable too!!<<
+//something fucking happened (login)
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -46,7 +46,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 4.9;
+const version = 5.0;
 
 //defining security functions
 
@@ -548,19 +548,22 @@ app.post('/verifyRoomPassword', async (req, res) => {
 
 app.post('/executeLogin', async (req, res) => {
     const { username, password } = req.body;
+    //console.log(username, password)
     const users = await getUsers();
-    let currentUserVerifiedArgon
+    let currentUserVerifiedArgon;
     for (const user of users) {
       let currentUserHashedPass = hash(password);
       if (user.username == username) {
         if (user.password[0] == '$') {
+          console.log('ARGON DETECTED')
           try {
-            currentUserVerifiedArgon = argon2.verify(user.password, password);
+            //console.log(user.password, " ", password)
+            currentUserVerifiedArgon = await argon2.verify(user.password, password);
           } catch {
             currentUserVerifiedArgon = false;
           }
         }
-
+        console.log(user.password, currentUserHashedPass, currentUserVerifiedArgon)
         if (user.password == currentUserHashedPass || currentUserVerifiedArgon) {
           //adding data to the users session
           req.session.username = username;
@@ -667,7 +670,7 @@ app.get('/logout', (req, res) => {
 app.get('/dm', async (req, res) => {
   var target = req.query.target;
   if (target == req.session.username) {
-    res.write("why would you want to message yourself\nthat really says something about how many friends hyou have\nsmh ngl\n");
+    res.write("why would you want to message yourself\nthat really says something about how many friends you have\nsmh ngl you are an idiot and need to touch some grass you monkey\n");
     res.send();
     return;
   }
