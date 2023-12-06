@@ -1,6 +1,6 @@
 // Import required modules
-//4.8 >>update variable too!!<<
-//actually fixed message dupe shit yeehaw
+//4.9 >>update variable too!!<<
+//fixed dark mode bugs
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -46,7 +46,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 4.8;
+const version = 4.9;
 
 //defining security functions
 
@@ -149,9 +149,10 @@ async function removeRoom(roomId) {
 }
 
 async function updateUser(id, username, password, theme, session) {
+  console.log(theme)
   let localUsername;
   let localPassword;
-  let localTheme
+  let localTheme;
   localUsername = (username === "") ? session.username : username;
   localPassword = (password === "") ? session.hashedPassword : hash(password);
   localTheme = (theme === "") ? session.theme : theme;
