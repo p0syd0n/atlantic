@@ -1,6 +1,6 @@
 // Import required modules
-//5.1 >>update variable too!!<<
-//Fixed non-admin message duplication, also refactored code so that it recorded the message once and not as many times as there are people in the room. + fixed image rendering for non-admins
+//5.2 >>update variable too!!<<
+//fixed cooldown, and removed unneccesary ifs
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -28,6 +28,7 @@ const legalDocuments = ['legal_1.md', 'legal_2.md', 'legal_3.md'];
 const PORT = process.env.PORT;
 const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*():,./?~|1234567890';
 //make sure to change hasInvalidCharacters() function as well^^^
+const messageCooldown = 1.5/*<-- seconds*/ * 1000;
 
 /*
 defining 
@@ -46,7 +47,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 5.1;
+const version = 5.2;
 
 //defining security functions
 
@@ -610,10 +611,7 @@ app.post('/executeCreateAccount', async (req, res) => {
   if (newUserMaybe) {
     res.redirect('/create_account?issue=accountExists');
     return;
-  } else if (hasInvalidCharacters(username)) {
-    res.redirect('/create_account?issue=invalidCharacters');
-    return;
-  } else if (hasInvalidCharacters(password)) {
+  } else if (hasInvalidCharacters(username) || asInvalidCharacters(password)) {
     res.redirect('/create_account?issue=invalidCharacters');
     return;
   }
@@ -748,7 +746,6 @@ app.get('/legal', (req, res) => {
 // Set up socket.io connections
 io.on('connection', async (socket) => {
     console.log('A user connected: ' + socket.handshake.session.username);
-    lastTimeSent = Date.now() + 3;
     //checking if the connected socket is a notification management unit
     if (socket.handshake.query.notificationManager) {
       return;
@@ -821,7 +818,7 @@ io.on('connection', async (socket) => {
     var theme = socket.handshake.session.theme;
     var databaseId = socket.handshake.session.databaseId;
     var owner = socket.handshake.session.owner;
-    var lastTimeSent = Date.now();
+    var lastTimeSent;
     var ip = socket.handshake.session.ip;
     var location = await locationFromIp(ip);
   
@@ -834,7 +831,7 @@ io.on('connection', async (socket) => {
     //loading previous messages
     let messages = await getPreviousMessages(roomId);
     let formattedMessages = [];
-    let decryptedMessage
+    let decryptedMessage;
     for (const message of messages) {
       if (maxSecurity) {
         try {
@@ -858,9 +855,12 @@ io.on('connection', async (socket) => {
         socket.emit('replacePlaceholderText', 'Invalid Characters Detected');
         return;
       }
-      if (Date.now() - lastTimeSent <= 3500) {
+      if ((lastTimeSent ? Date.now() - lastTimeSent : 2000) <= messageCooldown) {
+        console.log('exited');
+        lastTimeSent = Date.now();
         return;
-      }
+    }
+    
     
       // Harvesting data about sender
       const senderData = adminTooltips
@@ -936,9 +936,9 @@ io.on('connection', async (socket) => {
           clientSocket.emit('newMessageForwarding', messageToSend);
         }
     
-        // Update the last sent timestamp
-        lastTimeSent = Date.now();
       }
+      // Update the last sent timestamp
+      lastTimeSent = Date.now();
     });
 
     //old working one in case this blatant data harvestation fucks up some day
