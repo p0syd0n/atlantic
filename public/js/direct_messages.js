@@ -6,6 +6,11 @@ function emitMessage(message) {
   socket.emit('newMessage', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML, message: message});
 }
 
+function scrollDown() {
+  const messageBox = document.querySelector('.message-box');
+  messageBox.scrollTop = messageBox.scrollHeight;
+} 
+
 // Function to add a new message to the UI
 function addMessage(message) {
   const messageBox = document.querySelector('.message-box');
@@ -13,6 +18,7 @@ function addMessage(message) {
   messageElement.classList.add('message');
   messageElement.textContent = message.replace("\n", "<br>");;
   messageBox.appendChild(messageElement);
+  scrollDown();
 }
 
 // Function to handle sending messages
@@ -73,4 +79,14 @@ socket.on('connect', () => {
 
 socket.on('established', (response) => {
   console.log('Established:', response);
+  // Get the message box
+  const messageBox = document.querySelector('.message-box');
+  const inputBox = document.getElementById('message-input');
+  inputBox.removeAttribute("disabled");
+  inputBox.focus()
+  console.log('message-input enabled and focused');
+  // Clear all existing messages
+  messageBox.innerHTML = '';
+  scrollDown();
 });
+

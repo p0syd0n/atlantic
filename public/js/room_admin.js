@@ -13,6 +13,7 @@ function emitMessage(message) {
 
 // Function to add a new message to the UI
 function addMessage(message, senderData, prefix, hasImage=false) {
+  console.log('loading'+message)
   const messageBox = document.querySelector('.message-box');
   scrollDown();
   const messageElement = document.createElement('div');
@@ -89,7 +90,7 @@ socket.on('connect', () => {
   // Event listener for receiving new messages
   socket.on('newMessageForwarding', (data) => {
     console.log(data)
-    let prefix;
+    let prefix = '';
     if (data.admin) {
       prefix = "[ADMIN] ";
     } 
@@ -101,8 +102,8 @@ socket.on('connect', () => {
       const imageUrl = data.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
       data.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
     }
-
-    addMessage(prefix + data.sender + ': ' + data.message, data.senderData, prefix, hasImage=true);
+    console.log()
+    addMessage((prefix ? prefix : '' )+ data.sender + ': ' + data.message, data.senderData, prefix, hasImage=true);
   });
 
   socket.on('info', (data) => {

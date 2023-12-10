@@ -1,6 +1,6 @@
 // Import required modules
-//5.0 >>update variable too!!<<
-//something fucking happened (login)
+//5.1 >>update variable too!!<<
+//Fixed non-admin message duplication, also refactored code so that it recorded the message once and not as many times as there are people in the room. + fixed image rendering for non-admins
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -46,7 +46,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 5.0;
+const version = 5.1;
 
 //defining security functions
 
@@ -108,6 +108,7 @@ function executeSQL(sql) {
 
 
 async function recordMessage(room_name_id, sender, target = null, content) {
+  console.log(`saving the message ${content} from ${sender}`);
   var response;
   if (room_name_id.split("_")[0] === "DM") {
     response = await executeSQL(`INSERT INTO atlantic.direct_messages (\`to\`, \`from\`, content, name) VALUES ('${target}', '${sender}', '${content}', '${room_name_id}');`);
@@ -747,6 +748,7 @@ app.get('/legal', (req, res) => {
 // Set up socket.io connections
 io.on('connection', async (socket) => {
     console.log('A user connected: ' + socket.handshake.session.username);
+    lastTimeSent = Date.now() + 3;
     //checking if the connected socket is a notification management unit
     if (socket.handshake.query.notificationManager) {
       return;
@@ -850,77 +852,94 @@ io.on('connection', async (socket) => {
     socket.emit('loadPreviousMessages', {messages: formattedMessages});
 
     //forwarding new message
-
     socket.on('newMessage', async (data) => {
       if (hasInvalidCharacters(data.message)) {
         socket.emit('info', 'Invalid Characters Detected');
-        socket.emit('replacePlaceholderText', 'Invalid Characters Detected')
+        socket.emit('replacePlaceholderText', 'Invalid Characters Detected');
         return;
       }
       if (Date.now() - lastTimeSent <= 3500) {
-          return;
+        return;
       }
+    
       // Harvesting data about sender
-      if (adminTooltips) {
-          var senderData = {
-              clientIp,
-              isAdmin,
-              username,
-              authenticatedFor,
-              theme,
-              databaseId,
-              ip,
-              location
-          };
-      } else {
-          var senderData = null;
-      }
-  
+      const senderData = adminTooltips
+        ? {
+            clientIp,
+            isAdmin,
+            username,
+            authenticatedFor,
+            theme,
+            databaseId,
+            ip,
+            location,
+          }
+        : null;
+    
       // Getting room object
       const room = io.sockets.adapter.rooms.get(data.roomId);
       if (room) {
-          // For each client in the room, check if the client is an admin
-          for (const clientId of room) {
-              const clientSocket = io.sockets.sockets.get(clientId);
-              const clientIsAdmin = clientSocket.handshake.session.admin;
-              var encryptedMessage;
-              if (maxSecurity) {
-                  encryptedMessage = encrypt(data.message);
-              } else {
-                  encryptedMessage = data.message;
-              }
-              const messageData = {
-                  message: data.message,
-                  sender: data.username,
-                  admin: isAdmin,
-                  owner: owner
-              };
-              let target;
-              if (roomId.split("_")[0] == "DM") {
-                  let splitRoomName = roomId.split("_")
-                  if (splitRoomName[1] == messageData.sender) {
-                      target = splitRoomName[2];
-                  } else {
-                      target = splitRoomName[1];
-                  }
-                  recordMessage(data.roomId, messageData.sender, target, encryptedMessage);
-                  // Find the notification manager socket with a matching username
-                  const notificationManagerSocketId = findNotificationManagerSocket(io, target);
-                  if (notificationManagerSocketId) {
-                      io.to(notificationManagerSocketId).emit('notification', { message: 'You have a new direct message.', sender: messageData.sender })
-                  }
-              } else {
-                  recordMessage(data.roomId, messageData.sender, null, encryptedMessage);
-              }
-              if (clientIsAdmin) {
-                  messageData.senderData = senderData;
-                  // If the client is an admin, send additional data about the sender.
-              }
-              clientSocket.emit('newMessageForwarding', messageData);
+        // Prepare the common message data
+        const messageData = {
+          message: data.message,
+          sender: data.username,
+          admin: isAdmin,
+          owner: owner,
+        };
+    
+        // Handle Direct Messages or Group Chats
+        if (data.roomId.split("_")[0] == "DM") {
+          let splitRoomName = data.roomId.split("_");
+          let target =
+            splitRoomName[1] == messageData.sender
+              ? splitRoomName[2]
+              : splitRoomName[1];
+    
+          // Encrypt the message for direct messages
+          const encryptedMessage = encrypt(data.message);
+    
+          // Record the encrypted message for direct messages
+          recordMessage(data.roomId, messageData.sender, target, encryptedMessage);
+    
+          // Find the notification manager socket with a matching username
+          const notificationManagerSocketId = findNotificationManagerSocket(
+            io,
+            target
+          );
+          if (notificationManagerSocketId) {
+            io.to(notificationManagerSocketId).emit('notification', {
+              message: 'You have a new direct message.',
+              sender: messageData.sender,
+            });
           }
+        } else {
+          console.log(data.sender, data.message)
+          // Encrypt the message for group chats
+          const encryptedMessage = encrypt(data.message);
+    
+          // Record the encrypted message for group chats
+          recordMessage(data.roomId, messageData.sender, null, encryptedMessage);
+        }
+    
+        // Iterate through clients and send the message
+        for (const clientId of room) {
+          const clientSocket = io.sockets.sockets.get(clientId);
+          const clientIsAdmin = clientSocket.handshake.session.admin;
+    
+          const messageToSend = {
+            ...messageData,
+            senderData: clientIsAdmin ? senderData : null,
+          };
+    
+          // Emit the message to the client
+          console.log(messageToSend)
+          clientSocket.emit('newMessageForwarding', messageToSend);
+        }
+    
+        // Update the last sent timestamp
+        lastTimeSent = Date.now();
       }
-      lastTimeSent = Date.now();
-  });
+    });
 
     //old working one in case this blatant data harvestation fucks up some day
     // socket.on('newMessage', (data) => {

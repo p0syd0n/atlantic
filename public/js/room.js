@@ -24,9 +24,10 @@ function addMessage(message, prefix, hasImage=false) {
 
     // Replace URLs in the message with anchor tags
     message = message.replace(urlRegex, function(url) {
-      return '<a class="message-link" href="' + url + '" target="_blank">' + url + '</a>';
+      return url;
     });
   }
+  console.log(`Just switched hasImage regex thingy, ${message}`)
   // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
   if (prefix == "[ADMIN] ") {
@@ -71,7 +72,7 @@ socket.on('connect', () => {
   // Event listener for receiving new messages
 
   socket.on('newMessageForwarding', (data) => {
-    let prefix;
+    let prefix = '';
     if (data.admin) {
       prefix = "[ADMIN] ";
     }
@@ -84,7 +85,8 @@ socket.on('connect', () => {
       data.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
     }
 
-    addMessage(prefix ? prefix : "" + data.sender + ': ' + data.message, prefix, hasImage=true);
+    addMessage((prefix ? prefix : '' )+ data.sender + ': ' + data.message
+    , prefix, hasImage=true);
   });
 
   socket.on('info', (data) => {
