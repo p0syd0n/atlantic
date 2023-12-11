@@ -17,6 +17,7 @@ body {
   font-family: Arial, sans-serif;
   background-color: #f4f4f4; /* Light background color */
   color: #333;
+  overflow: hidden;
 }
 
 .login-container {
@@ -75,7 +76,7 @@ button:hover {
 /* Center the account creation link */
 .create-account {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 5px;
 }
 
 /* Style for the account creation link */

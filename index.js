@@ -1,6 +1,6 @@
 // Import required modules
-//5.2 >>update variable too!!<<
-//fixed cooldown, and removed unneccesary ifs
+//5.3 >>update variable too!!<<
+//made create account link visible
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -47,7 +47,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 5.2;
+const version = 5.3;
 
 //defining security functions
 
