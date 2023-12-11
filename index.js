@@ -1,6 +1,6 @@
 // Import required modules
-//5.3 >>update variable too!!<<
-//made create account link visible
+//5.4 >>update variable too!!<<
+//typo
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -47,7 +47,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 5.3;
+const version = 5.4;
 
 //defining security functions
 
@@ -611,7 +611,7 @@ app.post('/executeCreateAccount', async (req, res) => {
   if (newUserMaybe) {
     res.redirect('/create_account?issue=accountExists');
     return;
-  } else if (hasInvalidCharacters(username) || asInvalidCharacters(password)) {
+  } else if (hasInvalidCharacters(username) || hasInvalidCharacters(password)) {
     res.redirect('/create_account?issue=invalidCharacters');
     return;
   }
