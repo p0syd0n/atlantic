@@ -13,7 +13,7 @@
     <div class="login-container">
         <h1>Welcome Back!</h1>
         <img src="/images/atlantic_logo.png"></img>
-        <form action="/executeLogin", method="post">
+        <form action="/executeLogin?referrer=<%= referrer %>", method="post">
             <input autofocus type="text" placeholder="Username" id="username" name="username" required>
             <input type="password" placeholder="Password" id="password" name="password" required>
             <button type="submit">Login</button>

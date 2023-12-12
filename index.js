@@ -1,6 +1,6 @@
 // Import required modules
-//5.5 >>update variable too!!<<
-//fixed css in rooms
+//5.6>>update variable too!!<<
+//added 404 and referrer
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -47,7 +47,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 5.5;
+const version = 5.6;
 
 //defining security functions
 
@@ -332,12 +332,16 @@ app.set('views', path.join(__dirname, 'public', 'views'));
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.set("trust proxy", 1);
+
+
 //app.use('/vcServer', VCPeerServer);
 
 // Handle routes
 app.get('/', async (req, res) => {
+  //checking if the session includes the username property will be used to check if the user is logged in
   if (req.session.username) {
     let rooms = await getRooms();
+    //rendering different pages depending whether the user is an admin
     if (req.session.admin) {
       res.render('main_admin', {rooms: rooms, username: req.session.username, theme: req.session.theme, version: version});
     } else {
@@ -349,11 +353,14 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    res.render('login', {version: version});
+  //referral system doesn't work idc
+  const theReferrer = req.headers.referer || req.headers.referrer || '/';
+  res.render('login', {version: version, referrer: theReferrer});
 });
 
 app.get('/create_room', (req, res) => {
   if (req.session.username) {
+    //The pages are the actually the same haha I might change that later though
     if (req.session.admin) {
       res.render('create_room_admin', {theme: req.session.theme, username: req.session.username});
       return;
@@ -370,8 +377,8 @@ app.get('/create_room', (req, res) => {
 app.post('/executeCreateRoom', async (req, res) => {
   if (req.session.username) {
     let { roomName, roomPassword} = req.body;
-    if (roomPassword == "") {
-      roomPassword = "none";
+    if (roomPassword == '') {
+      roomPassword = 'none';
     }
     await addRoom(roomName, roomPassword);
     res.redirect("/");
@@ -381,6 +388,7 @@ app.post('/executeCreateRoom', async (req, res) => {
 });
 
 app.get('/deleteRoom', async (req, res) => {
+  //you can only do it if you're an admin
   if (req.session.admin) {
     let response = await removeRoom(req.query.roomId);
     res.redirect("/")
@@ -394,6 +402,7 @@ app.get('/smurfcat', (req, res) => {
 })
 
 app.get('/user', (req, res) => {
+  //not a linker feature yet
   if (req.session.username) {
     res.render('user_info', {theme: req.session.theme, username: req.query.username});
   } else {
@@ -401,6 +410,7 @@ app.get('/user', (req, res) => {
   }
 });
 
+//idk if its even used anywhere I don't think so
 app.get('/vc', (req, res) => {
   var target;
   if (req.session.username) {
@@ -418,6 +428,7 @@ app.get('/vc', (req, res) => {
 app.post('/changeSettings', async (req, res) => {
   if (req.session.username) {
     let { username, password, theme } = req.body;
+    //updates the user in the database
     let response = await updateUser(req.session.databaseId, username, password, theme, req.session);
     req.session.destroy();
     res.redirect("/");
@@ -517,7 +528,6 @@ app.get('/room_password_entry', (req, res) => {
   } else {
     res.redirect("/login");
   }
-
 });
 
 app.post('/verifyRoomPassword', async (req, res) => {
@@ -544,6 +554,8 @@ app.post('/verifyRoomPassword', async (req, res) => {
 
 app.post('/executeLogin', async (req, res) => {
     const { username, password } = req.body;
+    const referrer = req.query.referrer;
+    console.log(referrer);
     //console.log(username, password)
     const users = await getUsers();
     let currentUserVerifiedArgon;
@@ -578,7 +590,7 @@ app.post('/executeLogin', async (req, res) => {
           req.session.nick = username; //maybe a later feature
           req.session.owner = user.owner; //owner boolean
           onlineClients.username = req.session;
-          res.redirect('/');
+          res.redirect(referrer);
           return;
         } else {
           res.redirect('/login');
@@ -724,6 +736,29 @@ app.get('/legal', (req, res) => {
       res.send(htmlContent);
     }
   });
+});
+
+app.get('/test', (req, res) => {
+  console.log(req);
+});
+
+app.get('*', function(req, res, next) {
+  res.status(404);
+
+  // respond with html page
+  if (req.accepts('html')) {
+    res.render('404', { path: req.path });
+    return;
+  }
+
+  // respond with json
+  if (req.accepts('json')) {
+    res.json({ error: 'Not found' });
+    return;
+  }
+
+  // default to plain-text. send()
+  res.type('txt').send('Not found');
 });
 
 // app.post('/test', async (req, res) => {
