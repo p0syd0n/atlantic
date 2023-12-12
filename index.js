@@ -1,6 +1,6 @@
 // Import required modules
-//5.7>>update variable too!!<<
-//referral from perms page fixed
+//5.8>>update variable too!!<<
+//referral from login page fixed
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -47,7 +47,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 5.7;
+const version = 5.8;
 
 //defining security functions
 
@@ -354,8 +354,13 @@ app.get('/', async (req, res) => {
 
 app.get('/login', (req, res) => {
   //referral system doesn't work idc
-  const theReferrer = req.headers.referer || req.headers.referrer || '/';
-  res.render('login', {version: version, referrer: theReferrer});
+  if (!req.session.username) {
+    const theReferrer = req.headers.referer || req.headers.referrer || '/';
+    res.render('login', {version: version, referrer: theReferrer});
+  } else {
+    res.redirect('/');
+  }
+
 });
 
 app.get('/create_room', (req, res) => {
