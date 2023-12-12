@@ -1,6 +1,6 @@
 // Import required modules
-//5.8>>update variable too!!<<
-//referral from login page fixed
+//5.9>>update variable too!!<<
+//removed the star from allowed characters
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -26,7 +26,7 @@ const iv = Buffer.from(process.env.IV, 'hex');
 const secretKey = Buffer.from(process.env.ENCRYPT_KEY, 'hex');
 const legalDocuments = ['legal_1.md', 'legal_2.md', 'legal_3.md'];
 const PORT = process.env.PORT;
-const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*():,./?~|1234567890';
+const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&():,./?~|1234567890';
 //make sure to change hasInvalidCharacters() function as well^^^
 const messageCooldown = 1.5/*<-- seconds*/ * 1000;
 
@@ -47,7 +47,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 5.8;
+const version = 5.9;
 
 //defining security functions
 
@@ -306,7 +306,7 @@ function findNotificationManagerSocket(io, username) {
 }
 
 function hasInvalidCharacters(inputString) {
-  const characterList = /[qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&*():,./?~|1234567890]/;
+  const characterList = /[qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&():,./?~|1234567890]/;
   return !characterList.test(inputString);
 }
 
