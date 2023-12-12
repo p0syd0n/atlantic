@@ -5,6 +5,7 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
+  overflow: hidden; /* Prevent scrolling */
 }
 
 /* Style for the top bar */
@@ -22,25 +23,22 @@ body {
 
 /* Style for the main content */
 .content {
-  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  height: 100vh;
+  height: calc(100vh - 40px); /* Adjusted height */
   background-color: #f4f4f4;
-  max-height: calc(100vh - 150px);
+  overflow: hidden; /* Prevent content overflow */
 }
 
 .message-box {
   flex: 1;
+  overflow-y: auto;
   background-color: #fff;
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 10px;
-  max-height: calc(100vh - 150px);
-  /* Adjust as needed */
-  overflow-y: auto;
 }
 
 .input-box {

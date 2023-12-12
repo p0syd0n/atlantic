@@ -1,6 +1,6 @@
 // Import required modules
-//5.4 >>update variable too!!<<
-//typo
+//5.5 >>update variable too!!<<
+//fixed css in rooms
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -47,7 +47,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 5.4;
+const version = 5.5;
 
 //defining security functions
 
@@ -106,8 +106,6 @@ function executeSQL(sql) {
   });
 }
 
-
-
 async function recordMessage(room_name_id, sender, target = null, content) {
   console.log(`saving the message ${content} from ${sender}`);
   var response;
@@ -147,7 +145,7 @@ async function addUser(username, password, theme) {
 async function removeRoom(roomId) {
   let response = await executeSQL(`DELETE FROM atlantic.rooms WHERE id="${roomId}"`);
   let response2 = await executeSQL(`DELETE FROM atlantic.messages WHERE roomId="${roomId}"`);
-  return response;
+  return response, response2;
 }
 
 async function updateUser(id, username, password, theme, session) {
@@ -312,17 +310,13 @@ function hasInvalidCharacters(inputString) {
   return !characterList.test(inputString);
 }
 
-
-//let responseTheme = await executeSQL(`UPDATE atlantic.users SET theme = "${theme}" WHERE id="${id}";`);
-
-
 // Set up session middleware and other resources
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
   proxy: true, // Required for Heroku & Digital Ocean (regarding X-Forwarded-For)
-  name: process.env.DEPLOY_COOKIE_NAME, // This needs to be unique per-host.
+  name: process.env.DEPLOY_COOKIE_NAME || 'deploy', // This needs to be unique per-host.
   cookie: {
     secure: true, // required for cookies to work on HTTPS
     httpOnly: false,
@@ -602,7 +596,6 @@ app.get('/temp_notice', (req, res) => {
 app.get('/permissions', (req, res) => {
   res.render('perms.ejs');
 });
-
 
 app.post('/executeCreateAccount', async (req, res) => {
   await updateUserMap();

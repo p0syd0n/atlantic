@@ -10,7 +10,6 @@ body {
     padding: 5;
     background-color: #1e1e1e; /* Dark background color */
     color: #fff; /* Light text color */
-    overflow: hidden;
   }
   
   /* Style for the top bar */
@@ -28,16 +27,15 @@ body {
   
   /* Style for the main content */
   .content {
+    height: calc(100vh - 150px);
     padding: 20px;
-    padding-bottom: 80px; /* Adjust this value as needed */
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    height: 95vh;
-    color: #ffffff;
-    background-color: #1e1e1e; /* Dark background color */
-    max-height: calc(100vh - 150px);
-    min-height: 100vh;
+    /* height: 100vh; */
+    background-color: #1e1e1e;
+    color: white;
+    /* max-height: calc(100vh - 150px); */
   }
 
   .message-link {
@@ -45,18 +43,22 @@ body {
   }
   
   .message-box {
-    flex: 1;
+    flex:  1 1 auto;;
     background-color: #252525; /* Slightly lighter dark background color */
     padding: 10px;
     color: rgb(197, 197, 197);
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 10px;
-    max-height: calc(100vh - 170px); /* Adjust as needed */
+    /* max-height: calc(100vh - 150px);*/
     overflow-y: auto;
   }
   
   .input-box {
+    position: fixed; /* Use fixed position */
+    bottom: 0; /* Stick it to the bottom */
+    left: 0; /* Align it to the left */
+    width: 100%; /* Take up the full width */
     display: flex;
     align-items: center;
     background-color: #252525; /* Slightly lighter dark background color */
