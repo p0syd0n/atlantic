@@ -1,6 +1,6 @@
 // Import required modules
-//5.6>>update variable too!!<<
-//added 404 and referrer
+//5.7>>update variable too!!<<
+//referral from perms page fixed
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -47,7 +47,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 5.6;
+const version = 5.7;
 
 //defining security functions
 
@@ -606,7 +606,12 @@ app.get('/temp_notice', (req, res) => {
 });
 
 app.get('/permissions', (req, res) => {
-  res.render('perms.ejs');
+  if (!req.session.username) {
+    res.render('perms.ejs');
+  } else {
+    res.redirect('/');
+  }
+
 });
 
 app.post('/executeCreateAccount', async (req, res) => {
