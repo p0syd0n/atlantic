@@ -1,6 +1,6 @@
 // Import required modules
-//5.9>>update variable too!!<<
-//removed the star from allowed characters
+//6.0>>update variable too!!<<
+//Transferred to mySQL, added node_modules to .gitignore
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -15,6 +15,7 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session';
 import argon2 from 'argon2';
+import mysql from 'mysql2';
 
 dotenv.config();
 
@@ -47,7 +48,21 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 5.9;
+const version = 6.0;
+
+const DB_USERNAME = process.env.DB_USERNAME;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_HOST = process.env.DB_HOST;
+const DB_PORT = process.env.DB_PORT;
+
+const pool = mysql.createPool({
+    connectionLimit: 10,
+    database: "atlantic",
+    user: DB_USERNAME,
+    password: DB_PASSWORD,
+    host: DB_HOST
+});
+
 
 //defining security functions
 
@@ -81,7 +96,21 @@ function decrypt(encryptedData) {
 }
 
 //defining database/sql functions
-function executeSQL(sql) {
+
+const executeSQL = (sqlQuery) => {
+  return new Promise((resolve, reject) => {
+      pool.query(sqlQuery, (error, results) => {
+          if (error) {
+             reject(error);
+          } else {
+             resolve(results);
+          }
+      });
+  });
+};
+
+
+function executeSQL2(sql) {
   return new Promise((resolve, reject) => {
     const options = {
       method: 'POST',
@@ -110,14 +139,14 @@ async function recordMessage(room_name_id, sender, target = null, content) {
   console.log(`saving the message ${content} from ${sender}`);
   var response;
   if (room_name_id.split("_")[0] === "DM") {
-    response = await executeSQL(`INSERT INTO atlantic.direct_messages (\`to\`, \`from\`, content, name) VALUES ('${target}', '${sender}', '${content}', '${room_name_id}');`);
+    response = await executeSQL(`INSERT INTO direct_messages (\`to\`, \`from\`, content, name) VALUES ('${target}', '${sender}', '${content}', '${room_name_id}');`);
   } else {
-    response = await executeSQL(`INSERT INTO atlantic.messages (\`from\`, content, roomId) VALUES ('${sender}', '${content}', '${room_name_id}');`);
+    response = await executeSQL(`INSERT INTO messages (\`from\`, content, roomId) VALUES ('${sender}', '${content}', '${room_name_id}');`);
   }
 }
 
 async function getActiveDms(username) {
-  let directMessages = await executeSQL(`SELECT * FROM atlantic.direct_messages;`);
+  let directMessages = await executeSQL(`SELECT * FROM direct_messages;`);
   let results = [];
   for (const message of directMessages) {
     if (message.name.split("_").includes(username)) {
@@ -132,19 +161,19 @@ async function getActiveDms(username) {
 }
 
 async function addRoom(name, password) {
-  let response = await executeSQL(`INSERT INTO atlantic.rooms (name, password) VALUES ('${name}', '${password}');`)
+  let response = await executeSQL(`INSERT INTO rooms (name, password) VALUES ('${name}', '${password}');`)
   return response;
 }
 
 async function addUser(username, password, theme) {
   let hashedPass = await argonHash(password);
-  let response = await executeSQL(`INSERT INTO atlantic.users (username, password, theme, admin, owner) VALUES ('${username}', '${hashedPass}', '${theme}', false, false)`);
+  let response = await executeSQL(`INSERT INTO users (username, password, theme, admin, owner) VALUES ('${username}', '${hashedPass}', '${theme}', false, false)`);
   return response;
 }
 
 async function removeRoom(roomId) {
-  let response = await executeSQL(`DELETE FROM atlantic.rooms WHERE id="${roomId}"`);
-  let response2 = await executeSQL(`DELETE FROM atlantic.messages WHERE roomId="${roomId}"`);
+  let response = await executeSQL(`DELETE FROM rooms WHERE id="${roomId}"`);
+  let response2 = await executeSQL(`DELETE FROM messages WHERE roomId="${roomId}"`);
   return response, response2;
 }
 
@@ -156,7 +185,7 @@ async function updateUser(id, username, password, theme, session) {
   localUsername = (username === "") ? session.username : username;
   localPassword = (password === "") ? session.hashedPassword : hash(password);
   localTheme = (theme === "") ? session.theme : theme;
-  let response = executeSQL(`UPDATE atlantic.users SET username = "${localUsername}", password = "${localPassword}", theme = "${localTheme}" WHERE id="${id}";`);
+  let response = executeSQL(`UPDATE users SET username = "${localUsername}", password = "${localPassword}", theme = "${localTheme}" WHERE id="${id}";`);
   return "idk";
 }
 
@@ -170,21 +199,21 @@ async function getPreviousMessages(room_id_name) {
   }
   if (isDm == "DM") {
     let roomName = room_id_name;
-    messages = await executeSQL(`SELECT * FROM atlantic.direct_messages WHERE name="${roomName}";`);
+    messages = await executeSQL(`SELECT * FROM direct_messages WHERE name="${roomName}";`);
   } else {
     let roomId = room_id_name;
-    messages = await executeSQL(`SELECT * FROM atlantic.messages WHERE roomId="${roomId}";`);
+    messages = await executeSQL(`SELECT * FROM messages WHERE roomId="${roomId}";`);
   }
   return messages;
 }
 
 async function getUsers() {
-  let response = await executeSQL("SELECT * FROM atlantic.users");
+  let response = await executeSQL("SELECT * FROM users");
   return response;
 }
 
 async function getRooms() {
-  let response = await executeSQL("SELECT * FROM atlantic.rooms");
+  let response = await executeSQL("SELECT * FROM rooms");
   return response;
 }
 
@@ -991,5 +1020,7 @@ io.on('connection', async (socket) => {
 
 // Start the server
 server.listen(PORT, async () => {
+  let result = await executeSQL2('SELECT * FROM messages;');
+  console.log(result);
   console.log(`Server is running on port ${PORT}`);
 });
