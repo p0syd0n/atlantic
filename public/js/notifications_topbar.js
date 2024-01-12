@@ -1,5 +1,32 @@
 let notifications = [];
 let notificationsCount = 0;
+const searchParams = new URLSearchParams(window.location.search);
+
+function showModal(text) {
+  // Create a new div element
+  const modal = document.createElement('div');
+
+  // Set the style properties to position the modal in the top left of the page
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.padding = '10px';
+  modal.style.backgroundColor = '#f0f0f0';
+  modal.style.borderRadius = '5px';
+  modal.style.zIndex = '9999'; // Ensures the modal appears on top of everything else
+
+  // Add the provided text to the modal
+  modal.innerText = text;
+
+  // Append the modal to the body of the document
+  document.body.appendChild(modal);
+
+  // Remove the modal after 5 seconds
+  setTimeout(() => {
+      document.body.removeChild(modal);
+  }, 5000);
+}
+
 
 function displayNotifications() {
   const notificationsDialog = document.getElementById('notifications-list');
@@ -74,21 +101,26 @@ function notifyMe(title, message, icon) {
   }
 }
 
-if (window.location.pathname == '/room' || window.location.pathname == '/dm'){} else {
-  const socket = io({query: {'notificationManager': true}});
+//window.location.pathname == '/room' || window.location.pathname == '/dm'
+if (false){} else {
+  const notificationSocket = io({query: {'notificationManager': true}});
 
-  socket.on('connect', () => {
+  notificationSocket.on('connect', () => {
     console.log('Connected to server');
   });
   
-  socket.on('disconnect', () => {
+  notificationSocket.on('disconnect', () => {
     console.log('Disconnected from server');
   });
   
-  socket.on('notification', (data) => {
+  notificationSocket.on('notification', (data) => {
     // Handle the notification, e.g., display it to the user
     console.log('Notification:', data.message);
     notifications.push({message: data.message, sender: data.sender});
+    if (searchParams.get('target') != data.sender) {
+      showModal(`New message from ${data.sender} <a href='/dm?target=${data.sender}'>here</a>`);
+    }
+    
     //alert({message: data.message, sender: data.sender})
     displayNotifications();
 

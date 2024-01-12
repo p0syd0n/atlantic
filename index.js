@@ -1,6 +1,6 @@
 // Import required modules
-//6.0>>update variable too!!<<
-//Transferred to mySQL, added node_modules to .gitignore
+//6.1>>update variable too!!<<
+//notification modal
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -48,7 +48,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 6.0;
+const version = 6.1;
 
 const DB_USERNAME = process.env.DB_USERNAME;
 const DB_PASSWORD = process.env.DB_PASSWORD;
