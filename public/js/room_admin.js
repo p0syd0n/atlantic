@@ -116,6 +116,7 @@ socket.on('connect', () => {
   });
 
   socket.on('loadPreviousMessages', (data) => {
+    console.log(data);
     // Get the message box
     const messageBox = document.querySelector('.message-box');
     // Clear all existing messages
