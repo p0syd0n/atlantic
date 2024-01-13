@@ -1,6 +1,6 @@
 // Import required modules
-//6.1>>update variable too!!<<
-//notification modal
+//6.2>>update variable too!!<<
+//Fuckity fuck fuck fuck fuck fuck deployment database broke + node_modules gitignore fucked shit up + fuck mysql2 + linux epoch time format suck my dick
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -48,7 +48,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 6.1;
+const version = 6.2;
 
 const DB_USERNAME = process.env.DB_USERNAME;
 const DB_PASSWORD = process.env.DB_PASSWORD;
@@ -56,7 +56,7 @@ const DB_HOST = process.env.DB_HOST;
 const DB_PORT = process.env.DB_PORT;
 
 const pool = mysql.createPool({
-    connectionLimit: 10,
+    connectionLimit: 100,
     database: "atlantic",
     user: DB_USERNAME,
     password: DB_PASSWORD,
@@ -912,6 +912,7 @@ io.on('connection', async (socket) => {
       }
       formattedMessages.push({to: message.to, from: message.from, message: decryptedMessage, time: message.__createdtime__})
     }
+    console.log(formattedMessages)
 
     socket.emit('loadPreviousMessages', {messages: formattedMessages});
 
@@ -1020,7 +1021,8 @@ io.on('connection', async (socket) => {
 
 // Start the server
 server.listen(PORT, async () => {
-  let result = await executeSQL2('SELECT * FROM messages;');
+  //let result = await executeSQL("INSERT INTO messages (`from`, `to`, content, roomId) VALUES ('posydon', NULL, '!MESSAGE!', 'cffe3c94-56a6-4552-9817-d5e655754413');");
+  let result = 1
   console.log(result);
   console.log(`Server is running on port ${PORT}`);
 });

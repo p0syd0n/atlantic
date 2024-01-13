@@ -3,17 +3,38 @@ let notificationsCount = 0;
 const searchParams = new URLSearchParams(window.location.search);
 
 function showModal(text) {
-  // Create a new div element
+  // Create a new style element
+  const style = document.createElement('style');
+
+  // Define the modal styles
+  const modalStyles = `
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+      z-index: 9999;
+      display: none;
+    }
+
+    .modal.show {
+      display: block;
+    }
+  `;
+
+  // Set the style content
+  style.innerHTML = modalStyles;
+
+  // Append the style to the head of the document
+  document.head.appendChild(style);
+
+  // Create a new div element for the modal
   const modal = document.createElement('div');
 
-  // Set the style properties to position the modal in the top left of the page
-  modal.style.position = 'fixed';
-  modal.style.top = '0';
-  modal.style.left = '0';
-  modal.style.padding = '10px';
-  modal.style.backgroundColor = '#f0f0f0';
-  modal.style.borderRadius = '5px';
-  modal.style.zIndex = '9999'; // Ensures the modal appears on top of everything else
+  // Add the 'modal' class to the modal
+  modal.classList.add('modal');
 
   // Add the provided text to the modal
   modal.innerText = text;
@@ -21,11 +42,18 @@ function showModal(text) {
   // Append the modal to the body of the document
   document.body.appendChild(modal);
 
+  // Add the 'show' class after a short delay
+  setTimeout(() => {
+    modal.classList.add('show');
+  }, 100);
+
   // Remove the modal after 5 seconds
   setTimeout(() => {
-      document.body.removeChild(modal);
+    document.body.removeChild(modal);
+    document.head.removeChild(style); // Remove the injected styles
   }, 5000);
 }
+
 
 
 function displayNotifications() {
