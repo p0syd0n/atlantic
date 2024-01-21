@@ -1,6 +1,4 @@
 // Import required modules
-//6.3>>update variable too!!<<
-//prefix saves to database
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -16,7 +14,7 @@ import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session';
 import argon2 from 'argon2';
 import mysql from 'mysql2';
-
+import { version } from './package.json';
 dotenv.config();
 
 //defining constants
@@ -48,7 +46,6 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 6.3;
 
 const DB_USERNAME = process.env.DB_USERNAME;
 const DB_PASSWORD = process.env.DB_PASSWORD;
@@ -605,7 +602,7 @@ app.post('/executeLogin', async (req, res) => {
             currentUserVerifiedArgon = false;
           }
         }
-        console.log(user.password, currentUserHashedPass, currentUserVerifiedArgon)
+        //console.log(user.password, currentUserHashedPass, currentUserVerifiedArgon)
         if (user.password == currentUserHashedPass || currentUserVerifiedArgon) {
           //adding data to the users session
           req.session.username = username;
@@ -922,7 +919,7 @@ io.on('connection', async (socket) => {
       }
       formattedMessages.push({to: message.to, from: message.from, message: decryptedMessage, time: message.__createdtime__})
     }
-    console.log(formattedMessages)
+    //console.log(formattedMessages)
 
     socket.emit('loadPreviousMessages', {messages: formattedMessages});
 
@@ -992,7 +989,7 @@ io.on('connection', async (socket) => {
             });
           }
         } else {
-          console.log(data.sender, data.message)
+          //console.log(data.sender, data.message)
           // Encrypt the message for group chats
           const encryptedMessage = encrypt(data.message);
     
@@ -1011,7 +1008,7 @@ io.on('connection', async (socket) => {
           };
     
           // Emit the message to the client
-          console.log(messageToSend)
+          //console.log(messageToSend)
           clientSocket.emit('newMessageForwarding', messageToSend);
         }
     

@@ -13,7 +13,8 @@ function emitMessage(message) {
 
 // Function to add a new message to the UI
 function addMessage(message, senderData, prefix, hasImage=false) {
-  console.log('loading'+message)
+  if (!prefix) prefix = message.split("]")[0]+"]";
+  //console.log('prefix: '+prefix)
   const messageBox = document.querySelector('.message-box');
   scrollDown();
   const messageElement = document.createElement('div');
@@ -29,9 +30,10 @@ function addMessage(message, senderData, prefix, hasImage=false) {
   }
   // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
-  if (prefix == "[ADMIN] ") {
+  prefix = prefix.trim()
+  if (prefix == "[ADMIN]") {
     messageElement.style.color = "blue";
-  } else if (prefix == "[OWNER] ") {
+  } else if (prefix == "[OWNER]") {
     messageElement.style.color = "red";
   }
   // Create a horizontal line separator element
