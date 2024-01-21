@@ -14,7 +14,9 @@ import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session';
 import argon2 from 'argon2';
 import mysql from 'mysql2';
-import version from './package.json' assert { type: 'json' };
+import pkg from './package.json' assert { type: 'json' };
+
+
 
 dotenv.config();
 
@@ -29,7 +31,7 @@ const PORT = process.env.PORT;
 const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&():,./?~|1234567890';
 //make sure to change hasInvalidCharacters() function as well^^^
 const messageCooldown = 1.5/*<-- seconds*/ * 1000;
-
+const version = pkg.version;
 /*
 defining 
 roomId: room
