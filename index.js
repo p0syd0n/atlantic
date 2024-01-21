@@ -14,7 +14,8 @@ import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session';
 import argon2 from 'argon2';
 import mysql from 'mysql2';
-import { version } from './package.json';
+import version from './package.json' assert { type: 'json' };
+
 dotenv.config();
 
 //defining constants
