@@ -14,6 +14,8 @@ function emitMessage(message) {
 
 // Function to add a new message to the UI
 function addMessage(message, prefix, hasImage=false) {
+  if (!prefix) prefix = message.split("]")[0]+"]";
+  //console.log('prefix'+ prefix)
   scrollDown()
   const messageBox = document.querySelector('.message-box');
   const messageElement = document.createElement('div');
@@ -30,9 +32,12 @@ function addMessage(message, prefix, hasImage=false) {
   console.log(`Just switched hasImage regex thingy, ${message}`)
   // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
-  if (prefix == "[ADMIN] ") {
+
+  prefix = prefix.trim()
+
+  if (prefix == "[ADMIN]") {
     messageElement.style.color = "blue";
-  } else if (prefix == "[OWNER] ") {
+  } else if (prefix == "[OWNER]") {
     messageElement.style.color = "red";
   }
   // Create a horizontal line separator element
