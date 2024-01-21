@@ -1,6 +1,6 @@
 // Import required modules
-//6.2>>update variable too!!<<
-//Fuckity fuck fuck fuck fuck fuck deployment database broke + node_modules gitignore fucked shit up + fuck mysql2 + linux epoch time format suck my dick
+//6.3>>update variable too!!<<
+//prefix saves to database
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -48,7 +48,7 @@ const io = new Server(server);
 const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
-const version = 6.2;
+const version = 6.3;
 
 const DB_USERNAME = process.env.DB_USERNAME;
 const DB_PASSWORD = process.env.DB_PASSWORD;
@@ -888,6 +888,16 @@ io.on('connection', async (socket) => {
     var lastTimeSent;
     var ip = socket.handshake.session.ip;
     var location = await locationFromIp(ip);
+
+    //setting the prefix for saving messages
+    let prefix = '';
+    if (isAdmin) {
+      prefix = '[ADMIN] ';
+    }
+    if (owner) {
+      prefix = '[OWNER] ';
+    }
+
   
     
 
@@ -967,7 +977,8 @@ io.on('connection', async (socket) => {
           const encryptedMessage = encrypt(data.message);
     
           // Record the encrypted message for direct messages
-          recordMessage(data.roomId, messageData.sender, target, encryptedMessage);
+
+          recordMessage(data.roomId, prefix+messageData.sender, target, encryptedMessage);
     
           // Find the notification manager socket with a matching username
           const notificationManagerSocketId = findNotificationManagerSocket(
@@ -986,7 +997,7 @@ io.on('connection', async (socket) => {
           const encryptedMessage = encrypt(data.message);
     
           // Record the encrypted message for group chats
-          recordMessage(data.roomId, messageData.sender, null, encryptedMessage);
+          recordMessage(data.roomId, prefix+messageData.sender, null, encryptedMessage);
         }
     
         // Iterate through clients and send the message
