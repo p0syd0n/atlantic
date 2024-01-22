@@ -1,3 +1,5 @@
+git add .
+git commit
 read -p 'major/minor/patch: ' type
 
 if [[ $type == 'major' ]]; then
