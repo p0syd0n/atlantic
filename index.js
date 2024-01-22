@@ -63,7 +63,6 @@ const pool = mysql.createPool({
     host: DB_HOST
 });
 
-
 //defining security functions
 async function argonHash(password) {
   try {
