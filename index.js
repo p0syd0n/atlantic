@@ -64,7 +64,6 @@ const pool = mysql.createPool({
 
 
 //defining security functions
-
 async function argonHash(password) {
   try {
     const hash = await argon2.hash(password);
