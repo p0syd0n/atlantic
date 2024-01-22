@@ -30,6 +30,7 @@ const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@
 //make sure to change hasInvalidCharacters() function as well^^^
 const messageCooldown = 1.5/*<-- seconds*/ * 1000;
 const version = pkg.version;
+
 /*
 defining 
 roomId: room
