@@ -49,6 +49,7 @@ const maxSecurity = true; // ok encryption is on and working
 const adminTooltips = false;
 let onlineClients = {};
 
+//database stuff
 const DB_USERNAME = process.env.DB_USERNAME;
 const DB_PASSWORD = process.env.DB_PASSWORD;
 const DB_HOST = process.env.DB_HOST;
@@ -847,7 +848,7 @@ io.on('connection', async (socket) => {
       }
 
     } else {
-      
+
       //not a dm, joining the room if authenticated
       /*
       The socket connection that is only supposed to happen in the page rendered to authenticated users somehow gets executed.
