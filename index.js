@@ -216,7 +216,6 @@ async function getRooms() {
 }
 
 //defining helper functions
-
 async function updateRoomMap() {
   let rooms = await getRooms();
   roomMap = {};
@@ -848,6 +847,7 @@ io.on('connection', async (socket) => {
       }
 
     } else {
+      
       //not a dm, joining the room if authenticated
       /*
       The socket connection that is only supposed to happen in the page rendered to authenticated users somehow gets executed.
