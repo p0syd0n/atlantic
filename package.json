@@ -1,6 +1,7 @@
 {
   "start": "node .",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "dependencies": {
     "@semantic-release/commit-analyzer": "^11.1.0",
