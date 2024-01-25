@@ -2,7 +2,7 @@
 
 *Effective Date: 8/25/23*
 
-This Privacy and Data Collection Statement ("Statement") governs the data collection, processing, and utilization practices of the service known as "Atlantic" ("Service"), provided by [Your Company Name] ("Company," "We," "Us," or "Our"). By accessing or using the Service, you ("User," "You," or "Your") expressly acknowledge and agree to the terms and conditions outlined in this Statement.
+This Privacy and Data Collection Statement ("Statement") governs the data collection, processing, and utilization practices of the service known as "Atlantic" ("Service"), provided by Atlantic ("Company," "We," "Us," or "Our"). By accessing or using the Service, you ("User," "You," or "Your") expressly acknowledge and agree to the terms and conditions outlined in this Statement.
 
 **1. Data Collection and Usage**
 
