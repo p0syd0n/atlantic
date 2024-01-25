@@ -14,7 +14,7 @@ import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session';
 import argon2 from 'argon2';
 import mysql from 'mysql2';
-import pkg from './package.json' assert { type: 'json' };
+import pkg from './package.mjs' assert { type: 'json' };
 
 dotenv.config();
 
@@ -183,7 +183,7 @@ async function updateUser(id, username, password, theme, session) {
   localUsername = (username === "") ? session.username : username;
   localPassword = (password === "") ? session.hashedPassword : hash(password);
   localTheme = (theme === "") ? session.theme : theme;
-  let response = executeSQL(`UPDATE users SET username = "${localUsername}", password = "${localPassword}", theme = "${localTheme}" WHERE id="${id}";`);
+  let response = await executeSQL(`UPDATE users SET username = "${localUsername}", password = "${localPassword}", theme = "${localTheme}" WHERE id="${id}";`);
   return "idk";
 }
 
