@@ -14,7 +14,7 @@ import dotenv from 'dotenv';
 import expressSocketIO from 'express-socket.io-session';
 import argon2 from 'argon2';
 import mysql from 'mysql2';
-import pkg from './package.mjs' assert { type: 'json' };
+import pkg from './package.json' assert { type: 'json' };
 
 dotenv.config();
 
@@ -358,8 +358,6 @@ app.set('views', path.join(__dirname, 'public', 'views'));
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.set("trust proxy", 1);
-
-
 //app.use('/vcServer', VCPeerServer);
 
 // Handle routes
