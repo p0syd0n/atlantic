@@ -1,6 +1,6 @@
 **Privacy and Data Collection Statement**
 
-*Effective Date: [Date]*
+*Effective Date: 8/25/23*
 
 This Privacy and Data Collection Statement ("Statement") governs the data collection, processing, and utilization practices of the service known as "Atlantic" ("Service"), provided by [Your Company Name] ("Company," "We," "Us," or "Our"). By accessing or using the Service, you ("User," "You," or "Your") expressly acknowledge and agree to the terms and conditions outlined in this Statement.
 
@@ -44,14 +44,14 @@ We reserve the right to update and modify this Statement at any time. Changes wi
 
 If you have any questions, concerns, or requests regarding this Statement or our data processing practices, please contact us at:
 
-[Your Contact Information]
+posydon9752@gmail.com
 
 In witness whereof, the parties hereto have executed this Privacy and Data Collection Statement as of the Effective Date.
 
-[Your Company Name]
+Atlantic
 
-By: ____________________________
-[Authorized Signatory]
-[Date]
+By: posydon
+P
+8/25/23
 
-This document constitutes a legally binding agreement between You and [Your Company Name] regarding the use of the Atlantic service and the processing of Collected Data.
+This document constitutes a legally binding agreement between You and Atlantic regarding the use of the Atlantic service and the processing of Collected Data.

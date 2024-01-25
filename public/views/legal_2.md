@@ -95,4 +95,8 @@ This symphony of words, inked with juridical fervor, etches the path that the Us
 18.1 As this page concludes its articulation, the Parties march in harmony towards the summit of digital evolution, the essence of this Agreement guiding their stride.
 
 This parchment bears witness to the unfolding saga of the User's journey within Atlantic's Services.
+Signed : posydon
 
+Atlantic
+
+Effective 8/25/23
