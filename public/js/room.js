@@ -33,7 +33,7 @@ function addMessage(message, prefix, hasImage=false) {
   // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
 
-  prefix = prefix.trim()
+  //prefix = prefix.trim()
 
   if (prefix == "[ADMIN]") {
     messageElement.style.color = "blue";
