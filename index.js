@@ -466,6 +466,15 @@ app.post('/changeSettings', async (req, res) => {
   }
 });
 
+app.get('/soundboard', (req, res) => {
+  if (res.session.admin) {
+    res.render('soundboard');
+  } else {
+    res.redirect('/login');
+  }
+  
+})
+
 app.get('/room', async (req, res) => {
   if (req.session.username) {
     await updateRoomMap();
