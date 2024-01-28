@@ -931,6 +931,7 @@ io.on('connection', async (socket) => {
 
   socket.on('disconnect', async () => {
     console.log('A user disconnected: ' + socket.handshake.session.username);
+    
   });
 
   //loading previous messages
@@ -1063,8 +1064,8 @@ io.on('connection', async (socket) => {
 // Start the server
 server.listen(PORT, async () => {
   //let result = await executeSQL("INSERT INTO messages (`from`, `to`, content, roomId) VALUES ('posydon', NULL, '!MESSAGE!', 'cffe3c94-56a6-4552-9817-d5e655754413');");
-  let result = 1
-  console.log(result);
+  //let result = 1
+  //console.log(result);
   console.log(`Server is running on port ${PORT}`);
-  getMessagesFromRoom('cffe3c94-56a6-4552-9817-d5e655754413');
+  //getMessagesFromRoom('cffe3c94-56a6-4552-9817-d5e655754413');
 });
