@@ -56,11 +56,11 @@ const DB_HOST = process.env.DB_HOST;
 const DB_PORT = process.env.DB_PORT;
 
 const pool = mysql.createPool({
-    connectionLimit: 100,
-    database: "atlantic",
-    user: DB_USERNAME,
-    password: DB_PASSWORD,
-    host: DB_HOST
+  connectionLimit: 100,
+  database: "atlantic",
+  user: DB_USERNAME,
+  password: DB_PASSWORD,
+  host: DB_HOST
 });
 
 //defining security functions
@@ -68,9 +68,9 @@ async function argonHash(password) {
   try {
     const hash = await argon2.hash(password);
     return hash;
-   } catch (err) {
+  } catch (err) {
     console.log("ERROR HASHING: " + err);
-   }
+  }
 }
 
 function hash(inputString) {
@@ -97,13 +97,13 @@ function decrypt(encryptedData) {
 
 const executeSQL = (sqlQuery) => {
   return new Promise((resolve, reject) => {
-      pool.query(sqlQuery, (error, results) => {
-          if (error) {
-             reject(error);
-          } else {
-             resolve(results);
-          }
-      });
+    pool.query(sqlQuery, (error, results) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
   });
 };
 
@@ -135,12 +135,14 @@ function executeSQL2(sql) {
 
 async function recordMessage(room_name_id, sender, target = null, content) {
   console.log(`saving the message ${content} from ${sender}`);
+  const time = Date.now()
   var response;
   if (room_name_id.split("_")[0] === "DM") {
-    response = await executeSQL(`INSERT INTO direct_messages (\`to\`, \`from\`, content, name) VALUES ('${target}', '${sender}', '${content}', '${room_name_id}');`);
+    response = await executeSQL(`INSERT INTO direct_messages (\`to\`, \`from\`, content, name, __createdtime__) VALUES ('${target}', '${sender}', '${content}', '${room_name_id}', ${time});`);
   } else {
-    response = await executeSQL(`INSERT INTO messages (\`from\`, content, roomId) VALUES ('${sender}', '${content}', '${room_name_id}');`);
+    response = await executeSQL(`INSERT INTO messages (\`from\`, content, roomId, __createdtime__) VALUES ('${sender}', '${content}', '${room_name_id}', ${time});`);
   }
+  return response
 }
 
 async function getActiveDms(username) {
@@ -187,6 +189,27 @@ async function updateUser(id, username, password, theme, session) {
   return "idk";
 }
 
+async function getMessagesFromRoom(room_id_name) {
+  let isDm;
+  let messages;
+  try {
+    isDm = room_id_name.split("_")[0]
+  } catch (error) {
+    isDm = false;
+  }
+  if (isDm == "DM") {
+    let roomName = room_id_name;
+    messages = await executeSQL(`SELECT * FROM direct_messages WHERE name="${roomName}";`);
+  } else {
+    let roomId = room_id_name;
+    messages = await executeSQL(`SELECT * FROM messages WHERE roomId="${roomId}";`);
+  }
+  for (let message of messages) {
+    console.log(message);
+    console.log(`Message: `)
+  }
+}
+
 async function getPreviousMessages(room_id_name) {
   let isDm;
   let messages;
@@ -219,7 +242,7 @@ async function getRooms() {
 async function updateRoomMap() {
   let rooms = await getRooms();
   roomMap = {};
-  for(let room of rooms) {
+  for (let room of rooms) {
     roomMap[room.id] = room;
   }
 }
@@ -227,7 +250,7 @@ async function updateRoomMap() {
 async function updateUserMap() {
   let users = await getUsers();
   usersMap = {};
-  for(let user of users) {
+  for (let user of users) {
     usersMap[user.username] = user;
   }
 }
@@ -235,7 +258,7 @@ async function updateUserMap() {
 
 function removeDuplicates(arr) {
   return arr.filter((item,
-      index) => arr.indexOf(item) === index);
+    index) => arr.indexOf(item) === index);
 }
 
 async function updateRoomNameIdMap(name) {
@@ -367,9 +390,9 @@ app.get('/', async (req, res) => {
     let rooms = await getRooms();
     //rendering different pages depending whether the user is an admin
     if (req.session.admin) {
-      res.render('main_admin', {rooms: rooms, username: req.session.username, theme: req.session.theme, version: version});
+      res.render('main_admin', { rooms: rooms, username: req.session.username, theme: req.session.theme, version: version });
     } else {
-      res.render('main', {rooms: rooms, username: req.session.username, theme: req.session.theme, version: version});
+      res.render('main', { rooms: rooms, username: req.session.username, theme: req.session.theme, version: version });
     }
   } else {
     res.redirect('/login');
@@ -380,7 +403,7 @@ app.get('/login', (req, res) => {
   //referral system doesn't work idc
   if (!req.session.username) {
     const theReferrer = req.headers.referer || req.headers.referrer || '/';
-    res.render('login', {version: version, referrer: theReferrer});
+    res.render('login', { version: version, referrer: theReferrer });
   } else {
     res.redirect('/');
   }
@@ -391,10 +414,10 @@ app.get('/create_room', (req, res) => {
   if (req.session.username) {
     //The pages are the actually the same haha I might change that later though
     if (req.session.admin) {
-      res.render('create_room_admin', {theme: req.session.theme, username: req.session.username});
+      res.render('create_room_admin', { theme: req.session.theme, username: req.session.username });
       return;
     } else {
-      res.render('create_room', {theme: req.session.theme, username: req.session.username});
+      res.render('create_room', { theme: req.session.theme, username: req.session.username });
       return;
     }
   } else {
@@ -405,13 +428,13 @@ app.get('/create_room', (req, res) => {
 
 app.post('/executeCreateRoom', async (req, res) => {
   if (req.session.username) {
-    let { roomName, roomPassword} = req.body;
+    let { roomName, roomPassword } = req.body;
     if (roomPassword == '') {
       roomPassword = 'none';
     }
     await addRoom(roomName, roomPassword);
     res.redirect("/");
-  } else{
+  } else {
     res.redirect('/login');
   }
 });
@@ -421,7 +444,7 @@ app.get('/deleteRoom', async (req, res) => {
   if (req.session.admin) {
     let response = await removeRoom(req.query.roomId);
     res.redirect("/")
-  } else{
+  } else {
     res.redirect("/")
   }
 });
@@ -433,7 +456,7 @@ app.get('/smurfcat', (req, res) => {
 app.get('/user', (req, res) => {
   //not a linker feature yet
   if (req.session.username) {
-    res.render('user_info', {theme: req.session.theme, username: req.query.username});
+    res.render('user_info', { theme: req.session.theme, username: req.query.username });
   } else {
     res.redirect('/login');
   }
@@ -451,7 +474,7 @@ app.get('/vc', (req, res) => {
     res.render('call', { username: req.session.username, target: target });
   } else {
     res.redirect('/login');
-  }  
+  }
 });
 
 app.post('/changeSettings', async (req, res) => {
@@ -472,7 +495,7 @@ app.get('/soundboard', (req, res) => {
   } else {
     res.redirect('/login');
   }
-  
+
 })
 
 app.get('/room', async (req, res) => {
@@ -484,22 +507,22 @@ app.get('/room', async (req, res) => {
         for (const roomId of req.session.authenticatedFor) {
           if (roomId == req.query.roomId) {
             if (req.session.admin) {
-              res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+              res.render('room_admin', { username: req.session.username, roomId: req.query.roomId, theme: req.session.theme });
               return;
             } else {
-              res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+              res.render('room', { username: req.session.username, roomId: req.query.roomId, theme: req.session.theme });
               return;
             }
           }
         }
-        res.redirect('/room_password_entry?roomId='+req.query.roomId);
+        res.redirect('/room_password_entry?roomId=' + req.query.roomId);
         return;
       } else {
         if (req.session.admin) {
-          res.render('room_admin', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+          res.render('room_admin', { username: req.session.username, roomId: req.query.roomId, theme: req.session.theme });
           return;
         } else {
-          res.render('room', {username: req.session.username, roomId:req.query.roomId, theme:req.session.theme});
+          res.render('room', { username: req.session.username, roomId: req.query.roomId, theme: req.session.theme });
           return;
         }
       }
@@ -562,7 +585,7 @@ app.get('/room', async (req, res) => {
 app.get('/room_password_entry', (req, res) => {
   if (req.session.username) {
     let roomId = req.query.roomId;
-    res.render('password_entry', {roomId:roomId, theme:req.session.theme});
+    res.render('password_entry', { roomId: roomId, theme: req.session.theme });
   } else {
     res.redirect("/login");
   }
@@ -576,10 +599,10 @@ app.post('/verifyRoomPassword', async (req, res) => {
       if (room.id == req.query.roomId) {
         if (room.password == password) {
           req.session.authenticatedFor.push(room.id);
-          res.redirect('/room?roomId='+req.query.roomId);
+          res.redirect('/room?roomId=' + req.query.roomId);
           return;
         } else {
-          res.redirect('/room_password_entry?roomId='+req.query.roomId);
+          res.redirect('/room_password_entry?roomId=' + req.query.roomId);
           return;
         }
       }
@@ -591,52 +614,52 @@ app.post('/verifyRoomPassword', async (req, res) => {
 });
 
 app.post('/executeLogin', async (req, res) => {
-    const { username, password } = req.body;
-    const referrer = req.query.referrer;
-    console.log(referrer);
-    //console.log(username, password)
-    const users = await getUsers();
-    let currentUserVerifiedArgon;
-    for (const user of users) {
-      let currentUserHashedPass = hash(password);
-      if (user.username == username) {
-        if (user.password[0] == '$') {
-          console.log('ARGON DETECTED')
-          try {
-            //console.log(user.password, " ", password)
-            currentUserVerifiedArgon = await argon2.verify(user.password, password);
-          } catch {
-            currentUserVerifiedArgon = false;
-          }
-        }
-        //console.log(user.password, currentUserHashedPass, currentUserVerifiedArgon)
-        if (user.password == currentUserHashedPass || currentUserVerifiedArgon) {
-          //adding data to the users session
-          req.session.username = username;
-          req.session.authenticatedFor = [];
-          req.session.theme = user.theme;
-          req.session.databaseId = user.id;
-          req.session.hashedPassword = user.password;
-          req.session.encryptedPassword = encrypt(user.password);
-          req.session.admin = user.admin; //admin boolean
-          try {
-            req.session.ip = req.headers['x-forwarded-for'].split(", ")[0]; 
-          } catch (error) {
-            console.log( `error with ip getting: \n ${error}`);
-            req.session.ip = undefined;
-          }
-          req.session.nick = username; //maybe a later feature
-          req.session.owner = user.owner; //owner boolean
-          onlineClients.username = req.session;
-          res.redirect(referrer);
-          return;
-        } else {
-          res.redirect('/login');
-          return;
+  const { username, password } = req.body;
+  const referrer = req.query.referrer;
+  console.log(referrer);
+  //console.log(username, password)
+  const users = await getUsers();
+  let currentUserVerifiedArgon;
+  for (const user of users) {
+    let currentUserHashedPass = hash(password);
+    if (user.username == username) {
+      if (user.password[0] == '$') {
+        console.log('ARGON DETECTED')
+        try {
+          //console.log(user.password, " ", password)
+          currentUserVerifiedArgon = await argon2.verify(user.password, password);
+        } catch {
+          currentUserVerifiedArgon = false;
         }
       }
+      //console.log(user.password, currentUserHashedPass, currentUserVerifiedArgon)
+      if (user.password == currentUserHashedPass || currentUserVerifiedArgon) {
+        //adding data to the users session
+        req.session.username = username;
+        req.session.authenticatedFor = [];
+        req.session.theme = user.theme;
+        req.session.databaseId = user.id;
+        req.session.hashedPassword = user.password;
+        req.session.encryptedPassword = encrypt(user.password);
+        req.session.admin = user.admin; //admin boolean
+        try {
+          req.session.ip = req.headers['x-forwarded-for'].split(", ")[0];
+        } catch (error) {
+          console.log(`error with ip getting: \n ${error}`);
+          req.session.ip = undefined;
+        }
+        req.session.nick = username; //maybe a later feature
+        req.session.owner = user.owner; //owner boolean
+        onlineClients.username = req.session;
+        res.redirect(referrer);
+        return;
+      } else {
+        res.redirect('/login');
+        return;
+      }
     }
-    res.redirect("/login");
+  }
+  res.redirect("/login");
 });
 
 app.get('/temp_notice', (req, res) => {
@@ -682,7 +705,7 @@ app.get('/dm_entry', async (req, res) => {
       dms = [];
     }
 
-    res.render('direct_messages_entry', { theme: req.session.theme, dms:dms, username: req.session.username });
+    res.render('direct_messages_entry', { theme: req.session.theme, dms: dms, username: req.session.username });
   } else {
     res.redirect('/login');
   }
@@ -706,7 +729,7 @@ app.get('/create_account', (req, res) => {
       issue = null;
       break;
   }
-  res.render('create_account', {issue: issue});
+  res.render('create_account', { issue: issue });
 });
 
 app.get('/logout', (req, res) => {
@@ -733,7 +756,7 @@ app.get('/dm', async (req, res) => {
       return;
     }
     let correctRoomName = await roomNameFromOccupants([req.session.username, target]);
-    res.render('direct_messages', {roomId: correctRoomName, theme: req.session.theme, username: req.session.username});
+    res.render('direct_messages', { roomId: correctRoomName, theme: req.session.theme, username: req.session.username });
 
   } else {
     res.redirect("/login");
@@ -785,7 +808,7 @@ app.get('/test', (req, res) => {
   console.log(req);
 });
 
-app.get('*', function(req, res, next) {
+app.get('*', function (req, res, next) {
   res.status(404);
 
   // respond with html page
@@ -816,223 +839,225 @@ app.get('*', function(req, res, next) {
 
 // Set up socket.io connections
 io.on('connection', async (socket) => {
-    console.log('A user connected: ' + socket.handshake.session.username);
-    //checking if the connected socket is a notification management unit
-    if (socket.handshake.query.notificationManager) {
-      return;
-    }
+  console.log('A user connected: ' + socket.handshake.session.username);
+  //checking if the connected socket is a notification management unit
+  if (socket.handshake.query.notificationManager) {
+    return;
+  }
 
-    if (!socket.handshake.session.username) {
-      socket.disconnect();
-      return;
-    }
+  if (!socket.handshake.session.username) {
+    socket.disconnect();
+    return;
+  }
 
-    //direct message authentication system
-    let roomId;
-    //checking if it is a dm
-    if (socket.handshake.query.dm || socket.handshake.query.roomId.split("_")[0] == "DM") {
-      //getting data from session and from query
-      let username = socket.handshake.session.username;
-      let roomName = socket.handshake.query.roomId;
-      try {
-        var roomOccupants = [roomName.split("_")[1], roomName.split("_")[2]];
-        //alphabetizing the dm room name, so that it doesnt differ when x messages y vs when y messages x
-      } catch(error) {
-        console.log(`Error splitting to roomOccupants: \n ${error}\nroomName: ${roomName}\nroomOccupants: ${roomOccupants}`);
+  //direct message authentication system
+  let roomId;
+  //checking if it is a dm
+  if (socket.handshake.query.dm || socket.handshake.query.roomId.split("_")[0] == "DM") {
+    //getting data from session and from query
+    let username = socket.handshake.session.username;
+    let roomName = socket.handshake.query.roomId;
+    try {
+      var roomOccupants = [roomName.split("_")[1], roomName.split("_")[2]];
+      //alphabetizing the dm room name, so that it doesnt differ when x messages y vs when y messages x
+    } catch (error) {
+      console.log(`Error splitting to roomOccupants: \n ${error}\nroomName: ${roomName}\nroomOccupants: ${roomOccupants}`);
+    }
+    //making sure that the username associated with the session of the connected socket matches the username in the room name
+    if (roomOccupants.includes(socket.handshake.query.username)) {
+      if (roomOccupants.includes(username)) {
+        let correctRoomName = await roomNameFromOccupants(roomOccupants);
+        socket.join(correctRoomName);
+        roomId = correctRoomName;
+      } else {
+        //warning about someone advanced enough to attempt to connect with socket and spoofed username
+        console.log(`REPORT: \n user logged in as ${username} tried to join DM room ${roomName} with query parameter ${socket.handshake.query.username}`);
+        socket.emit('info', 'connection declined');
       }
-      //making sure that the username associated with the session of the connected socket matches the username in the room name
-      if (roomOccupants.includes(socket.handshake.query.username)) {
-        if (roomOccupants.includes(username)) {
-          let correctRoomName = await roomNameFromOccupants(roomOccupants);
-          socket.join(correctRoomName);
-          roomId = correctRoomName;
-        } else {
-          //warning about someone advanced enough to attempt to connect with socket and spoofed username
-          console.log(`REPORT: \n user logged in as ${username} tried to join DM room ${roomName} with query parameter ${socket.handshake.query.username}`);
-          socket.emit('info', 'connection declined');
-        }
+    }
+
+  } else {
+
+    //not a dm, joining the room if authenticated
+    /*
+    The socket connection that is only supposed to happen in the page rendered to authenticated users somehow gets executed.
+    Either they manually joined the room (typed out the js), or the got the js from github. 
+    Whatever, another check is here to make sure it doesn't work out for them
+    */
+
+    if (socket.handshake.session.authenticatedFor.includes(socket.handshake.query.roomId)) {
+      socket.join(socket.handshake.query.roomId);
+      roomId = socket.handshake.query.roomId;
+    } else {
+      const isPrivateRoom = await isPrivate(socket.handshake.query.roomId);
+      if (isPrivateRoom) {
+        console.log("Someone tried that edge case where you could theoretically join a private room without authenticating haha");
+        socket.emit('info', 'Fuck off you filthy exploiter');
+        socket.disconnect();
+        return;
+      } else {
+        socket.join(socket.handshake.query.roomId);
+        roomId = socket.handshake.query.roomId;
+      }
+    }
+  }
+
+  //emitting establishment to acknowledge room presence
+  socket.emit('established', { message: 'Room joined successfully' });
+
+  //general socket information from session and such, to be forwarded to admin connections when the user sends a message
+  var clientIp = socket.handshake.remoteAddress;
+  var isAdmin = socket.handshake.session.admin;
+  var username = socket.handshake.session.username;
+  var authenticatedFor = JSON.stringify(socket.handshake.session.authenticatedFor);
+  var theme = socket.handshake.session.theme;
+  var databaseId = socket.handshake.session.databaseId;
+  var owner = socket.handshake.session.owner;
+  var lastTimeSent;
+  var ip = socket.handshake.session.ip;
+  var location = await locationFromIp(ip);
+
+  //setting the prefix for saving messages
+  let prefix = '';
+  if (isAdmin) {
+    prefix = '[ADMIN] ';
+  }
+  if (owner) {
+    prefix = '[OWNER] ';
+  }
+
+
+
+
+  socket.on('disconnect', async () => {
+    console.log('A user disconnected: ' + socket.handshake.session.username);
+  });
+
+  //loading previous messages
+  let messages = await getPreviousMessages(roomId);
+  let formattedMessages = [];
+  let decryptedMessage;
+  for (const message of messages) {
+    if (maxSecurity) {
+      try {
+        decryptedMessage = decrypt(message.content);
+      } catch {
+        decryptedMessage = ' | [UNENCRYPTED] | ' + message.content;
       }
 
     } else {
-
-      //not a dm, joining the room if authenticated
-      /*
-      The socket connection that is only supposed to happen in the page rendered to authenticated users somehow gets executed.
-      Either they manually joined the room (typed out the js), or the got the js from github. 
-      Whatever, another check is here to make sure it doesn't work out for them
-      */
-
-      if (socket.handshake.session.authenticatedFor.includes(socket.handshake.query.roomId)) {
-        socket.join(socket.handshake.query.roomId);
-        roomId = socket.handshake.query.roomId;
-      } else {
-        const isPrivateRoom = await isPrivate(socket.handshake.query.roomId);
-        if (isPrivateRoom) {
-          console.log("Someone tried that edge case where you could theoretically join a private room without authenticating haha");
-          socket.emit('info', 'Fuck off you filthy exploiter');
-          socket.disconnect();
-          return;
-        } else {
-          socket.join(socket.handshake.query.roomId);
-          roomId = socket.handshake.query.roomId;
-        }
-      }
+      decryptedMessage = message.content;
     }
+    formattedMessages.push({ to: message.to, from: message.from, message: decryptedMessage, time: message.__createdtime__ })
+  }
+  //console.log(formattedMessages)
 
-    //emitting establishment to acknowledge room presence
-    socket.emit('established', { message: 'Room joined successfully' });
+  socket.emit('loadPreviousMessages', { messages: formattedMessages });
 
-    //general socket information from session and such, to be forwarded to admin connections when the user sends a message
-    var clientIp = socket.handshake.remoteAddress;
-    var isAdmin = socket.handshake.session.admin;
-    var username = socket.handshake.session.username;
-    var authenticatedFor = JSON.stringify(socket.handshake.session.authenticatedFor);
-    var theme = socket.handshake.session.theme;
-    var databaseId = socket.handshake.session.databaseId;
-    var owner = socket.handshake.session.owner;
-    var lastTimeSent;
-    var ip = socket.handshake.session.ip;
-    var location = await locationFromIp(ip);
-
-    //setting the prefix for saving messages
-    let prefix = '';
-    if (isAdmin) {
-      prefix = '[ADMIN] ';
+  //forwarding new message
+  socket.on('newMessage', async (data) => {
+    if (hasInvalidCharacters(data.message)) {
+      socket.emit('info', 'Invalid Characters Detected');
+      socket.emit('replacePlaceholderText', 'Invalid Characters Detected');
+      return;
     }
-    if (owner) {
-      prefix = '[OWNER] ';
-    }
-
-  
-    
-
-    socket.on('disconnect', async () => {
-        console.log('A user disconnected: ' + socket.handshake.session.username);
-    });
-
-    //loading previous messages
-    let messages = await getPreviousMessages(roomId);
-    let formattedMessages = [];
-    let decryptedMessage;
-    for (const message of messages) {
-      if (maxSecurity) {
-        try {
-          decryptedMessage = decrypt(message.content);
-        } catch {
-          decryptedMessage = ' | [UNENCRYPTED] | ' + message.content;
-        }
-        
-      } else {
-        decryptedMessage = message.content;
-      }
-      formattedMessages.push({to: message.to, from: message.from, message: decryptedMessage, time: message.__createdtime__})
-    }
-    //console.log(formattedMessages)
-
-    socket.emit('loadPreviousMessages', {messages: formattedMessages});
-
-    //forwarding new message
-    socket.on('newMessage', async (data) => {
-      if (hasInvalidCharacters(data.message)) {
-        socket.emit('info', 'Invalid Characters Detected');
-        socket.emit('replacePlaceholderText', 'Invalid Characters Detected');
-        return;
-      }
-      if ((lastTimeSent ? Date.now() - lastTimeSent : 2000) <= messageCooldown) {
-        console.log('exited');
-        lastTimeSent = Date.now();
-        return;
-    }
-    
-    
-      // Harvesting data about sender
-      const senderData = adminTooltips
-        ? {
-            clientIp,
-            isAdmin,
-            username,
-            authenticatedFor,
-            theme,
-            databaseId,
-            ip,
-            location,
-          }
-        : null;
-    
-      // Getting room object
-      const room = io.sockets.adapter.rooms.get(data.roomId);
-      if (room) {
-        // Prepare the common message data
-        const messageData = {
-          message: data.message,
-          sender: data.username,
-          admin: isAdmin,
-          owner: owner,
-        };
-    
-        // Handle Direct Messages or Group Chats
-        if (data.roomId.split("_")[0] == "DM") {
-          let splitRoomName = data.roomId.split("_");
-          let target =
-            splitRoomName[1] == messageData.sender
-              ? splitRoomName[2]
-              : splitRoomName[1];
-    
-          // Encrypt the message for direct messages
-          const encryptedMessage = encrypt(data.message);
-    
-          // Record the encrypted message for direct messages
-
-          recordMessage(data.roomId, prefix+messageData.sender, target, encryptedMessage);
-    
-          // Find the notification manager socket with a matching username
-          const notificationManagerSocketId = findNotificationManagerSocket(
-            io,
-            target
-          );
-          if (notificationManagerSocketId) {
-            io.to(notificationManagerSocketId).emit('notification', {
-              message: 'You have a new direct message.',
-              sender: messageData.sender,
-            });
-          }
-        } else {
-          //console.log(data.sender, data.message)
-          // Encrypt the message for group chats
-          const encryptedMessage = encrypt(data.message);
-    
-          // Record the encrypted message for group chats
-          recordMessage(data.roomId, prefix+messageData.sender, null, encryptedMessage);
-        }
-    
-        // Iterate through clients and send the message
-        for (const clientId of room) {
-          const clientSocket = io.sockets.sockets.get(clientId);
-          const clientIsAdmin = clientSocket.handshake.session.admin;
-    
-          const messageToSend = {
-            ...messageData,
-            senderData: clientIsAdmin ? senderData : null,
-          };
-    
-          // Emit the message to the client
-          //console.log(messageToSend)
-          clientSocket.emit('newMessageForwarding', messageToSend);
-        }
-    
-      }
-      // Update the last sent timestamp
+    if ((lastTimeSent ? Date.now() - lastTimeSent : 2000) <= messageCooldown) {
+      console.log('exited');
       lastTimeSent = Date.now();
-    });
+      return;
+    }
 
-    //old working one in case this blatant data harvestation fucks up some day
-    // socket.on('newMessage', (data) => {
-    //   // Broadcast the message to all clients in the room
-    //   console.log(data);
-    //   let senderData = { clientIp, isAdmin, username, authenticatedFor, theme, databaseId, password, ip, location }
-    //   console.log(data.roomId)
-    //   io.to(data.roomId).emit('newMessageForwarding', {message:data.message, sender: data.username, admin: isAdmin});
-    // });
+
+    // Harvesting data about sender
+    const senderData = adminTooltips
+      ? {
+        clientIp,
+        isAdmin,
+        username,
+        authenticatedFor,
+        theme,
+        databaseId,
+        ip,
+        location,
+      }
+      : null;
+
+    // Getting room object
+    const room = io.sockets.adapter.rooms.get(data.roomId);
+    if (room) {
+      // Prepare the common message data
+      const messageData = {
+        message: data.message,
+        sender: data.username,
+        admin: isAdmin,
+        owner: owner,
+      };
+
+      // Handle Direct Messages or Group Chats
+      if (data.roomId.split("_")[0] == "DM") {
+        let splitRoomName = data.roomId.split("_");
+        let target =
+          splitRoomName[1] == messageData.sender
+            ? splitRoomName[2]
+            : splitRoomName[1];
+
+        // Encrypt the message for direct messages
+        const encryptedMessage = encrypt(data.message);
+
+        // Record the encrypted message for direct messages
+
+        recordMessage(data.roomId, prefix + messageData.sender, target, encryptedMessage);
+
+        // Find the notification manager socket with a matching username
+        const notificationManagerSocketId = findNotificationManagerSocket(
+          io,
+          target
+        );
+        if (notificationManagerSocketId) {
+          io.to(notificationManagerSocketId).emit('notification', {
+            message: 'You have a new direct message.',
+            sender: messageData.sender,
+          });
+        }
+      } else {
+        //console.log(data.sender, data.message)
+        // Encrypt the message for group chats
+        const encryptedMessage = encrypt(data.message);
+
+        // Record the encrypted message for group chats
+        const recorded = await recordMessage(data.roomId, prefix + messageData.sender, null, encryptedMessage);
+        console.log(recorded);
+
+      }
+
+      // Iterate through clients and send the message
+      for (const clientId of room) {
+        const clientSocket = io.sockets.sockets.get(clientId);
+        const clientIsAdmin = clientSocket.handshake.session.admin;
+
+        const messageToSend = {
+          ...messageData,
+          senderData: clientIsAdmin ? senderData : null,
+        };
+
+        // Emit the message to the client
+        //console.log(messageToSend)
+        clientSocket.emit('newMessageForwarding', messageToSend);
+      }
+
+    }
+    // Update the last sent timestamp
+    lastTimeSent = Date.now();
+  });
+
+  //old working one in case this blatant data harvestation fucks up some day
+  // socket.on('newMessage', (data) => {
+  //   // Broadcast the message to all clients in the room
+  //   console.log(data);
+  //   let senderData = { clientIp, isAdmin, username, authenticatedFor, theme, databaseId, password, ip, location }
+  //   console.log(data.roomId)
+  //   io.to(data.roomId).emit('newMessageForwarding', {message:data.message, sender: data.username, admin: isAdmin});
+  // });
 });
 
 // Start the server
@@ -1041,4 +1066,5 @@ server.listen(PORT, async () => {
   let result = 1
   console.log(result);
   console.log(`Server is running on port ${PORT}`);
+  getMessagesFromRoom('cffe3c94-56a6-4552-9817-d5e655754413');
 });
