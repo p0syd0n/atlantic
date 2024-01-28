@@ -122,6 +122,7 @@ socket.on('connect', () => {
         addMessage(`${message.from}: ${message.message}`, prefix=false, hasImage=false);
       }
     });
+    console.log('ADDING MESSAGE ')
   
     scrollDown(); // Scroll to the bottom after adding messages
   });

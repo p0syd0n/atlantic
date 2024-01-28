@@ -1,5 +1,5 @@
 // Connect to the Socket.IO server
-const socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
+var socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
 
 function scrollDown() {
   const messageBox = document.querySelector('.message-box');
@@ -112,13 +112,17 @@ socket.on('connect', () => {
     console.log('info: '+data);
   });
 
+  socket.on('disconnect', () => {
+    socket = null;
+  });
+
   socket.on('replacePlaceholderText', (data) => {
     const messageInput = document.getElementById('message-input');
     messageInput.placeholder = data;
   });
 
   socket.on('loadPreviousMessages', (data) => {
-    console.log(data);
+    console.log('PREVIOUS MESSAGE: '+data);
     // Get the message box
     const messageBox = document.querySelector('.message-box');
     // Clear all existing messages
