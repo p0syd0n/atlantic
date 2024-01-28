@@ -15,6 +15,7 @@ function emitMessage(message) {
 // Function to add a new message to the UI
 function addMessage(message, prefix, hasImage=false) {
   if (!prefix) prefix = message.split("]")[0]+"]";
+  console.log('prefix: '+JSON.stringify(prefix))
   //console.log('prefix'+ prefix)
   scrollDown()
   const messageBox = document.querySelector('.message-box');
@@ -116,9 +117,9 @@ socket.on('connect', () => {
       if (message.message.includes('{img}')) {
         const imageUrl = message.message.split('{img}')[1].trim();
         message.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
-        addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=true);
+        addMessage(`${message.from}: ${message.message}`, prefix=false, hasImage=true);
       } else {
-        addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=false);
+        addMessage(`${message.from}: ${message.message}`, prefix=false, hasImage=false);
       }
     });
   
