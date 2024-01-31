@@ -82,83 +82,6 @@ function sendMessage() {
 // Event listener for socket connection
 socket.on('connect', () => {
   console.log('Socket connected');
-
-  // Emit the 'establish' event once the socket is connected
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  
-  // Event listener for receiving new messages
-  socket.on('newMessageForwarding', (data) => {
-    console.log(data)
-    let prefix = '';
-    if (data.admin) {
-      prefix = "[ADMIN] ";
-    } 
-    if (data.owner) {
-      prefix = "[OWNER] ";
-    }
-
-    if (data.message.includes('{img}')) {
-      const imageUrl = data.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
-      data.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
-    }
-    console.log()
-    addMessage((prefix ? prefix : '' )+ data.sender + ': ' + data.message, data.senderData, prefix, hasImage=true);
-  });
-
-  socket.on('info', (data) => {
-    console.log('info: '+data);
-  });
-
-  socket.on('disconnect', () => {
-    // Check if a socket with the stored ID exists
-    if (localStorage.getItem('socketId')) {
-       // Retrieve the old socket
-       var oldSocket = io.sockets.connected[localStorage.getItem('socketId')];
-       // If the old socket exists, disconnect it
-       if (oldSocket) {
-         oldSocket.disconnect();
-       }
-    }
-    // Establish a new connection
-    socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
-    // Update the stored socket ID
-    localStorage.setItem('socketId', socket.id);
-   });
-
-  socket.on('replacePlaceholderText', (data) => {
-    const messageInput = document.getElementById('message-input');
-    messageInput.placeholder = data;
-  });
-
-  socket.on('loadPreviousMessages', (data) => {
-    console.log('PREVIOUS MESSAGE: '+data);
-    // Get the message box
-    const messageBox = document.querySelector('.message-box');
-    // Clear all existing messages
-    messageBox.innerHTML = '';
-    // Sort the messages based on the __createdtime__ property in ascending order
-    let messages = data.messages.sort((message1, message2) => message1.time - message2.time);
-  
-    for (const message of messages) {
-      if (message.message.includes('{img}')) {
-        const imageUrl = message.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
-        message.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
-        addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=true);
-      } else {
-        addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=false);
-      }
-    }
-    scrollDown()
-  });
-  
-
-
-
-
-
   // Event listener for sending messages on button click
   document.getElementById('send-button').addEventListener('click', sendMessage);
 
@@ -171,6 +94,8 @@ socket.on('connect', () => {
   });
 });
 
+
+
 socket.on('established', (response) => {
   console.log('Established:', response);
   // Get the message box
@@ -181,4 +106,68 @@ socket.on('established', (response) => {
   console.log('message-input enabled and focused');
   // Clear all existing messages
   messageBox.innerHTML = '';
+});
+
+socket.on('newMessageForwarding', (data) => {
+  console.log(data)
+  let prefix = '';
+  if (data.admin) {
+    prefix = "[ADMIN] ";
+  } 
+  if (data.owner) {
+    prefix = "[OWNER] ";
+  }
+
+  if (data.message.includes('{img}')) {
+    const imageUrl = data.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
+    data.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
+  }
+  console.log()
+  addMessage((prefix ? prefix : '' )+ data.sender + ': ' + data.message, data.senderData, prefix, hasImage=true);
+});
+
+socket.on('info', (data) => {
+  console.log('info: '+data);
+});
+
+socket.on('disconnect', () => {
+  // Check if a socket with the stored ID exists
+  if (localStorage.getItem('socketId')) {
+     // Retrieve the old socket
+     var oldSocket = io.sockets.connected[localStorage.getItem('socketId')];
+     // If the old socket exists, disconnect it
+     if (oldSocket) {
+       oldSocket.disconnect();
+     }
+  }
+  // Establish a new connection
+  socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
+  // Update the stored socket ID
+  localStorage.setItem('socketId', socket.id);
+ });
+
+socket.on('replacePlaceholderText', (data) => {
+  const messageInput = document.getElementById('message-input');
+  messageInput.placeholder = data;
+});
+
+socket.on('loadPreviousMessages', (data) => {
+  console.log('PREVIOUS MESSAGE: '+data);
+  // Get the message box
+  const messageBox = document.querySelector('.message-box');
+  // Clear all existing messages
+  messageBox.innerHTML = '';
+  // Sort the messages based on the __createdtime__ property in ascending order
+  let messages = data.messages.sort((message1, message2) => message1.time - message2.time);
+
+  for (const message of messages) {
+    if (message.message.includes('{img}')) {
+      const imageUrl = message.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
+      message.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
+      addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=true);
+    } else {
+      addMessage(`${message.from}: ${message.message}`, {'INFO': 'message was loaded from database'}, prefix=false, hasImage=false);
+    }
+  }
+  scrollDown()
 });
