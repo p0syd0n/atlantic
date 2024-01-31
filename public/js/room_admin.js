@@ -131,19 +131,9 @@ socket.on('info', (data) => {
 });
 
 socket.on('disconnect', () => {
-  // Check if a socket with the stored ID exists
-  if (localStorage.getItem('socketId')) {
-     // Retrieve the old socket
-     var oldSocket = io.sockets.connected[localStorage.getItem('socketId')];
-     // If the old socket exists, disconnect it
-     if (oldSocket) {
-       oldSocket.disconnect();
-     }
-  }
+  socket.disconnect();
   // Establish a new connection
   socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
-  // Update the stored socket ID
-  localStorage.setItem('socketId', socket.id);
  });
 
 socket.on('replacePlaceholderText', (data) => {
