@@ -113,7 +113,7 @@ socket.on('connect', () => {
   });
 
   socket.on('disconnect', () => {
-    socket = null;
+    socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
   });
 
   socket.on('replacePlaceholderText', (data) => {

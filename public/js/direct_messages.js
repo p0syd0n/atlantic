@@ -59,11 +59,6 @@ socket.on('connect', () => {
       addMessage(`${message.from}: ${message.message}`);
     }
   });
-  
-
-
-
-
 
   // Event listener for sending messages on button click
   document.getElementById('send-button').addEventListener('click', sendMessage);
