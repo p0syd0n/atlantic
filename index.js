@@ -490,7 +490,7 @@ app.post('/changeSettings', async (req, res) => {
 });
 
 app.get('/soundboard', (req, res) => {
-  if (res.session.admin) {
+  if (req.session.admin) {
     res.render('soundboard');
   } else {
     res.redirect('/login');

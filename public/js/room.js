@@ -1,47 +1,38 @@
-// Connect to the Socket.IO server
+// Initialize Socket.IO connection with room ID and username query parameters
 const socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} });
 
+// Function to scroll message box to the bottom
 function scrollDown() {
   const messageBox = document.querySelector('.message-box');
   messageBox.scrollTop = messageBox.scrollHeight;
 }
 
-// Function to emit a new message
+// Emit a new message to the server
 function emitMessage(message) {
   socket.emit('newMessage', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML, message: message});
 }
 
-
-// Function to add a new message to the UI
+// Add a new message to the UI
 function addMessage(message, prefix, hasImage=false) {
   if (!prefix) prefix = message.split("]")[0]+"]";
-  console.log('prefix: '+JSON.stringify(prefix))
-  //console.log('prefix'+ prefix)
   scrollDown()
   const messageBox = document.querySelector('.message-box');
   const messageElement = document.createElement('div');
   messageElement.classList.add('message');
   if (!hasImage) {
-    // Regular expression to match URLs
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-    // Replace URLs in the message with anchor tags
     message = message.replace(urlRegex, function(url) {
       return url;
     });
   }
-  console.log(`Just switched hasImage regex thingy, ${message}`)
-  // Set the message text content and replace newlines
   messageElement.innerHTML = message.replace(/\n/g, '<br>');
-
-  //prefix = prefix.trim()
 
   if (prefix == "[ADMIN]") {
     messageElement.style.color = "blue";
   } else if (prefix == "[OWNER]") {
     messageElement.style.color = "red";
   }
-  // Create a horizontal line separator element
+
   const separatorElement = document.createElement('hr');
 
   messageBox.appendChild(messageElement);
@@ -49,7 +40,7 @@ function addMessage(message, prefix, hasImage=false) {
   scrollDown();
 }
 
-// Function to handle sending messages
+// Send message to the server
 function sendMessage() {
   const messageInput = document.getElementById('message-input');
   const message = messageInput.value;
@@ -58,25 +49,16 @@ function sendMessage() {
       window.location = "/";
     } else {
       emitMessage(message);
-      //addMessage(message);
       messageInput.value = '';
-      messageInput.focus(); // Auto-select the input box
+      messageInput.focus();
     }
   }
 }
 
 // Event listener for socket connection
 socket.on('connect', () => {
-  console.log('Socket connected');
 
-  // Emit the 'establish' event once the socket is connected
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-  // socket.emit('establish', {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML});
-    
   // Event listener for receiving new messages
-
   socket.on('newMessageForwarding', (data) => {
     let prefix = '';
     if (data.admin) {
@@ -87,33 +69,30 @@ socket.on('connect', () => {
     }
 
     if (data.message.includes('{img}')) {
-      const imageUrl = data.message.split('{img}')[1].trim(); // Get the image URL after '{img}'
+      const imageUrl = data.message.split('{img}')[1].trim();
       data.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
     }
 
-    addMessage((prefix ? prefix : '' )+ data.sender + ': ' + data.message
-    , prefix, hasImage=true);
+    addMessage((prefix ? prefix : '' )+ data.sender + ': ' + data.message, prefix, hasImage=true);
   });
 
+  // Event listener for receiving info messages
   socket.on('info', (data) => {
     console.log('info: '+data);
   });
 
+  // Event listener for replacing placeholder text
   socket.on('replacePlaceholderText', (data) => {
     const messageInput = document.getElementById('message-input');
     messageInput.placeholder = data;
   });
 
+  // Event listener for loading previous messages
   socket.on('loadPreviousMessages', (data) => {
-    // Get the message box
     const messageBox = document.querySelector('.message-box');
-    // Do not clear existing messages
-  
-    // Sort the messages based on the __createdtime__ property in ascending order
     let messages = data.messages.sort((message1, message2) => message1.time - message2.time);
   
     messages.forEach(message => {
-      // Append each message to the message box
       if (message.message.includes('{img}')) {
         const imageUrl = message.message.split('{img}')[1].trim();
         message.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
@@ -122,11 +101,9 @@ socket.on('connect', () => {
         addMessage(`${message.from}: ${message.message}`, prefix=false, hasImage=false);
       }
     });
-    console.log('ADDING MESSAGE ')
   
-    scrollDown(); // Scroll to the bottom after adding messages
+    scrollDown();
   });
-  
   
   // Event listener for sending messages on button click
   document.getElementById('send-button').addEventListener('click', sendMessage);
@@ -134,20 +111,17 @@ socket.on('connect', () => {
   // Event listener for sending messages on Enter key press
   document.getElementById('message-input').addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
-      event.preventDefault(); // Prevent creating a new line
-      sendMessage(); // Send the message
+      event.preventDefault();
+      sendMessage();
     }
   });
 });
 
+// Event listener for socket established event
 socket.on('established', (response) => {
-  console.log('Established:', response);
-  // Get the message box
   const messageBox = document.querySelector('.message-box');
   const inputBox = document.getElementById('message-input');
   inputBox.removeAttribute("disabled");
-  inputBox.focus()
-  console.log('message-input enabled and focused');
-  // Clear all existing messages
+  inputBox.focus();
   messageBox.innerHTML = '';
 });
