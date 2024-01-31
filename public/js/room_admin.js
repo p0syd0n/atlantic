@@ -133,7 +133,7 @@ socket.on('info', (data) => {
 socket.on('disconnect', () => {
   socket.disconnect();
   // Establish a new connection
-  socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
+  //socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
  });
 
 socket.on('replacePlaceholderText', (data) => {
