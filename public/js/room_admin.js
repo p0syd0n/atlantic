@@ -1,6 +1,13 @@
 // Connect to the Socket.IO server
 var socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
 
+if (window.location.origin == "https://atlantic.adaptable.app") {
+  setTimeout(() => {
+    location.reload();
+  }, 30000);
+}
+
+
 function scrollDown() {
   const messageBox = document.querySelector('.message-box');
   messageBox.scrollTop = messageBox.scrollHeight;
