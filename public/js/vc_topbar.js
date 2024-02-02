@@ -86,9 +86,21 @@ function makeCall() {
             call.on('stream', function(remoteStream) {
                 beginCallGui();
                 callLabel.innerHTML = "Call In Progress...";
-                // Show stream in the audio element
+                // Show the stream in the audio element
                 audioElement.srcObject = remoteStream;
+            
+                // Check if the play request was successful
+                var playPromise = audioElement.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        // Play request was successful
+                    }).catch(error => {
+                        // Play request was interrupted
+                        console.error('Play request was interrupted', error);
+                    });
+                }
             });
+            
 
             currentCall = call;
         })

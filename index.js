@@ -307,7 +307,7 @@ async function roomNameFromOccupants(occupants) {
 }
 
 function isFirstLetterFirst(letter1, letter2) {
-  const letterList = "abcdefghijklmnopqrstuvwxyz1234567890-=_+[]\\{}|;':\",./!@#$%^&*()<>?".split("");
+  const letterList = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-=_+[]\\{}|;':\",./!@#$%^&*()<>?".split("");
   const index1 = letterList.indexOf(letter1);
   const index2 = letterList.indexOf(letter2);
   if (index1 === -1 || index2 === -1) {
