@@ -6,7 +6,7 @@ var socket = io({
       username: document.getElementById('sessionUsername').innerHTML
     },  
   reconnection: true, // whether to reconnect automatically
-  reconnectionAttempts: 10, // number of reconnection attempts before giving up
+  reconnectionAttempts: 1000, // number of reconnection attempts before giving up
   reconnectionDelay: 1000 // delaye between connections
 });
 
