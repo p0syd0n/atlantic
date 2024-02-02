@@ -147,7 +147,8 @@ socket.on('info', (data) => {
 });
 
 socket.on('disconnect', () => {
-  socket.disconnect();
+  //socket.disconnect();
+  console.log('dicsonnected');
   // Establish a new connection
   //socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
  });
