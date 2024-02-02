@@ -1,5 +1,14 @@
 // Initialize Socket.IO connection with room ID and username query parameters
-const socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} });
+var socket = io({ 
+  query: 
+    {
+      roomId: document.getElementById('roomId').getAttribute('data-roomid'), 
+      username: document.getElementById('sessionUsername').innerHTML
+    },  
+  reconnection: true, // whether to reconnect automatically
+  reconnectionAttempts: 10, // number of reconnection attempts before giving up
+  reconnectionDelay: 1000 // delaye between connections
+});
 
 // Function to scroll message box to the bottom
 function scrollDown() {
@@ -57,54 +66,6 @@ function sendMessage() {
 
 // Event listener for socket connection
 socket.on('connect', () => {
-
-  // Event listener for receiving new messages
-  socket.on('newMessageForwarding', (data) => {
-    let prefix = '';
-    if (data.admin) {
-      prefix = "[ADMIN] ";
-    }
-    if (data.owner) {
-      prefix = "[OWNER] ";
-    }
-
-    if (data.message.includes('{img}')) {
-      const imageUrl = data.message.split('{img}')[1].trim();
-      data.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
-    }
-
-    addMessage((prefix ? prefix : '' )+ data.sender + ': ' + data.message, prefix, hasImage=true);
-  });
-
-  // Event listener for receiving info messages
-  socket.on('info', (data) => {
-    console.log('info: '+data);
-  });
-
-  // Event listener for replacing placeholder text
-  socket.on('replacePlaceholderText', (data) => {
-    const messageInput = document.getElementById('message-input');
-    messageInput.placeholder = data;
-  });
-
-  // Event listener for loading previous messages
-  socket.on('loadPreviousMessages', (data) => {
-    const messageBox = document.querySelector('.message-box');
-    let messages = data.messages.sort((message1, message2) => message1.time - message2.time);
-  
-    messages.forEach(message => {
-      if (message.message.includes('{img}')) {
-        const imageUrl = message.message.split('{img}')[1].trim();
-        message.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
-        addMessage(`${message.from}: ${message.message}`, prefix=false, hasImage=true);
-      } else {
-        addMessage(`${message.from}: ${message.message}`, prefix=false, hasImage=false);
-      }
-    });
-  
-    scrollDown();
-  });
-  
   // Event listener for sending messages on button click
   document.getElementById('send-button').addEventListener('click', sendMessage);
 
@@ -124,4 +85,52 @@ socket.on('established', (response) => {
   inputBox.removeAttribute("disabled");
   inputBox.focus();
   messageBox.innerHTML = '';
+});
+
+
+// Event listener for receiving new messages
+socket.on('newMessageForwarding', (data) => {
+  let prefix = '';
+  if (data.admin) {
+    prefix = "[ADMIN] ";
+  }
+  if (data.owner) {
+    prefix = "[OWNER] ";
+  }
+
+  if (data.message.includes('{img}')) {
+    const imageUrl = data.message.split('{img}')[1].trim();
+    data.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
+  }
+
+  addMessage((prefix ? prefix : '' )+ data.sender + ': ' + data.message, prefix, hasImage=true);
+});
+
+// Event listener for receiving info messages
+socket.on('info', (data) => {
+  console.log('info: '+data);
+});
+
+// Event listener for replacing placeholder text
+socket.on('replacePlaceholderText', (data) => {
+  const messageInput = document.getElementById('message-input');
+  messageInput.placeholder = data;
+});
+
+// Event listener for loading previous messages
+socket.on('loadPreviousMessages', (data) => {
+  const messageBox = document.querySelector('.message-box');
+  let messages = data.messages.sort((message1, message2) => message1.time - message2.time);
+
+  messages.forEach(message => {
+    if (message.message.includes('{img}')) {
+      const imageUrl = message.message.split('{img}')[1].trim();
+      message.message = `<img class="image" src="${imageUrl}" style="width: 40%; height: auto;"></img>`;
+      addMessage(`${message.from}: ${message.message}`, prefix=false, hasImage=true);
+    } else {
+      addMessage(`${message.from}: ${message.message}`, prefix=false, hasImage=false);
+    }
+  });
+
+  scrollDown();
 });
