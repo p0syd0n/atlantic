@@ -1,11 +1,20 @@
 // Connect to the Socket.IO server
-var socket = io({ query: {roomId: document.getElementById('roomId').getAttribute('data-roomid'), username: document.getElementById('sessionUsername').innerHTML} } );
+var socket = io({ 
+  query: 
+    {
+      roomId: document.getElementById('roomId').getAttribute('data-roomid'), 
+      username: document.getElementById('sessionUsername').innerHTML
+    },  
+  reconnection: true, // whether to reconnect automatically
+  reconnectionAttempts: 10, // number of reconnection attempts before giving up
+  reconnectionDelay: 1000 // delaye between connections
+});
 
-if (window.location.origin == "https://atlantic.adaptable.app") {
-  setTimeout(() => {
-    location.reload();
-  }, 30000);
-}
+// if (window.location.origin == "https://atlantic.adaptable.app") {
+//   setTimeout(() => {
+//     location.reload();
+//   }, 30000);
+// }
 
 
 function scrollDown() {
