@@ -15,6 +15,7 @@ import expressSocketIO from 'express-socket.io-session';
 import argon2 from 'argon2';
 import mysql from 'mysql2';
 import pkg from './package.json' assert { type: 'json' };
+import colors from 'colors';
 
 dotenv.config();
 
@@ -69,7 +70,7 @@ async function argonHash(password) {
     const hash = await argon2.hash(password);
     return hash;
   } catch (err) {
-    console.log("ERROR HASHING: " + err);
+    error("ERROR HASHING: " + err);
   }
 }
 
@@ -134,7 +135,7 @@ function executeSQL2(sql) {
 }
 
 async function recordMessage(room_name_id, sender, target = null, content) {
-  console.log(`saving the message ${content} from ${sender}`);
+  log(`Recording a message from ${sender}`);
   const time = Date.now()
   var response;
   if (room_name_id.split("_")[0] === "DM") {
@@ -161,24 +162,27 @@ async function getActiveDms(username) {
 }
 
 async function addRoom(name, password) {
+  log(`Adding room ${name} with password ${password}`);
   let response = await executeSQL(`INSERT INTO rooms (name, password) VALUES ('${name}', '${password}');`)
   return response;
 }
 
 async function addUser(username, password, theme) {
+  log(`Adding user ${username}`);
   let hashedPass = await argonHash(password);
   let response = await executeSQL(`INSERT INTO users (username, password, theme, admin, owner) VALUES ('${username}', '${hashedPass}', '${theme}', false, false)`);
   return response;
 }
 
 async function removeRoom(roomId) {
+  log(`Removing room with id ${roomId}`); ////////////////////////////////////////////////////////////////////////////////
   let response = await executeSQL(`DELETE FROM rooms WHERE id="${roomId}"`);
   let response2 = await executeSQL(`DELETE FROM messages WHERE roomId="${roomId}"`);
   return response, response2;
 }
 
 async function updateUser(id, username, password, theme, session) {
-  console.log(theme)
+  log(`Updating user ${username}`);
   let localUsername;
   let localPassword;
   let localTheme;
@@ -186,7 +190,7 @@ async function updateUser(id, username, password, theme, session) {
   localPassword = (password === "") ? session.hashedPassword : hash(password);
   localTheme = (theme === "") ? session.theme : theme;
   let response = await executeSQL(`UPDATE users SET username = "${localUsername}", password = "${localPassword}", theme = "${localTheme}" WHERE id="${id}";`);
-  return "idk";
+  return response;
 }
 
 async function getMessagesFromRoom(room_id_name) {
@@ -204,10 +208,11 @@ async function getMessagesFromRoom(room_id_name) {
     let roomId = room_id_name;
     messages = await executeSQL(`SELECT * FROM messages WHERE roomId="${roomId}";`);
   }
-  for (let message of messages) {
-    console.log(message);
-    console.log(`Message: `)
-  }
+  // for (let message of messages) {
+  //   console.log(message);
+  //   console.log(`Message: `)
+  // }
+  return messages;
 }
 
 async function getPreviousMessages(room_id_name) {
@@ -239,6 +244,22 @@ async function getRooms() {
 }
 
 //defining helper functions
+
+function log(data) {
+  //console.log(colors.green('[INFO] ' + data));
+  console.log(`[INFO] ${data}`.bold.green);
+}
+
+function warn(data) {
+  //console.log(colors.yellow('[WARNING] ' + data));
+  console.log(`[WARNING] ${data}`.bold.yellow);
+}
+
+function error(data) {
+  //console.log(colors.red.trap('[ERROR] ' + data));
+  console.log(`[ERROR] ${data}`.bold.red);
+}
+
 async function updateRoomMap() {
   let rooms = await getRooms();
   roomMap = {};
@@ -285,6 +306,7 @@ async function isPrivate(roomId) {
   }
 }
 
+//function gets the DM room name from the two occupants
 async function roomNameFromOccupants(occupants) {
   const username1 = occupants[0];
   const username2 = occupants[1];
@@ -311,7 +333,8 @@ function isFirstLetterFirst(letter1, letter2) {
   const index1 = letterList.indexOf(letter1);
   const index2 = letterList.indexOf(letter2);
   if (index1 === -1 || index2 === -1) {
-    throw new Error("Invalid input letters");
+    error('Invalid input letters')
+    throw new Error('Invalid input letters');
   }
   return index1 < index2;
 }
@@ -330,10 +353,11 @@ async function locationFromIp(ipAddress) {
         organization: data.org,
       };
     } else {
+      error('Response not OK while fetching location')
       throw new Error('Response not OK');
     }
   } catch (error) {
-    console.error('Error fetching location:', error.message);
+    error('Error fetching location: ', error.message);
     return null;
   }
 }
@@ -495,8 +519,7 @@ app.get('/soundboard', (req, res) => {
   } else {
     res.redirect('/login');
   }
-
-})
+});
 
 app.get('/room', async (req, res) => {
   if (req.session.username) {
@@ -616,7 +639,7 @@ app.post('/verifyRoomPassword', async (req, res) => {
 app.post('/executeLogin', async (req, res) => {
   const { username, password } = req.body;
   const referrer = req.query.referrer;
-  console.log(referrer);
+  log(`Login referrer: ${referrer}`);
   //console.log(username, password)
   const users = await getUsers();
   let currentUserVerifiedArgon;
@@ -624,7 +647,7 @@ app.post('/executeLogin', async (req, res) => {
     let currentUserHashedPass = hash(password);
     if (user.username == username) {
       if (user.password[0] == '$') {
-        console.log('ARGON DETECTED')
+        //log('ARGON DETECTED')
         try {
           //console.log(user.password, " ", password)
           currentUserVerifiedArgon = await argon2.verify(user.password, password);
@@ -645,7 +668,7 @@ app.post('/executeLogin', async (req, res) => {
         try {
           req.session.ip = req.headers['x-forwarded-for'].split(", ")[0];
         } catch (error) {
-          console.log(`error with ip getting: \n ${error}`);
+          error(`error with ip getting: \n ${error}`);
           req.session.ip = undefined;
         }
         req.session.nick = username; //maybe a later feature
@@ -704,7 +727,6 @@ app.get('/dm_entry', async (req, res) => {
     } else {
       dms = [];
     }
-
     res.render('direct_messages_entry', { theme: req.session.theme, dms: dms, username: req.session.username });
   } else {
     res.redirect('/login');
@@ -740,8 +762,9 @@ app.get('/logout', (req, res) => {
 app.get('/dm', async (req, res) => {
   var target = req.query.target;
   if (target == req.session.username) {
-    res.write("why would you want to message yourself\nthat really says something about how many friends you have\nsmh ngl you are an idiot and need to touch some grass you monkey\n");
+    res.write("why would you want to message yourself\nthat really says something about how many friends you have");
     res.send();
+    log('Insult successful')
     return;
   }
   let allUsers = await getUsers();
@@ -757,7 +780,6 @@ app.get('/dm', async (req, res) => {
     }
     let correctRoomName = await roomNameFromOccupants([req.session.username, target]);
     res.render('direct_messages', { roomId: correctRoomName, theme: req.session.theme, username: req.session.username });
-
   } else {
     res.redirect("/login");
   }
@@ -767,7 +789,7 @@ app.get('/help', (req, res) => {
   const markdownFilePath = path.join(__dirname, 'public', 'views', 'help.md');
   fs.readFile(markdownFilePath, 'utf-8', (err, markdownContent) => {
     if (err) {
-      console.error('Error reading markdown file:', err);
+      error('Error reading help markdown file:', err);
       res.sendStatus(500);
     } else {
       const htmlContent = marked(markdownContent);
@@ -780,7 +802,7 @@ app.get('/image_help', (req, res) => {
   const markdownFilePath = path.join(__dirname, 'public', 'views', 'image_help.md');
   fs.readFile(markdownFilePath, 'utf-8', (err, markdownContent) => {
     if (err) {
-      console.error('Error reading markdown file:', err);
+      error('Error reading image help markdown file:', err);
       res.sendStatus(500);
     } else {
       const htmlContent = marked(markdownContent);
@@ -795,7 +817,7 @@ app.get('/legal', (req, res) => {
   const legalFilePath = path.join(__dirname, 'public', 'views', legalDocuments[randomLegalIndex]);
   fs.readFile(legalFilePath, 'utf-8', (err, legalContent) => {
     if (err) {
-      console.error('Error reading legal file:', err);
+      error('Error reading legal markdown file:', err);
       res.sendStatus(500);
     } else {
       const htmlContent = marked(legalContent);
@@ -839,7 +861,7 @@ app.get('*', function (req, res, next) {
 
 // Set up socket.io connections
 io.on('connection', async (socket) => {
-  console.log('A user connected: ' + socket.handshake.session.username);
+  log('A user connected: ' + socket.handshake.session.username);
   //checking if the connected socket is a notification management unit
   if (socket.handshake.query.notificationManager) {
     return;
@@ -861,7 +883,7 @@ io.on('connection', async (socket) => {
       var roomOccupants = [roomName.split("_")[1], roomName.split("_")[2]];
       //alphabetizing the dm room name, so that it doesnt differ when x messages y vs when y messages x
     } catch (error) {
-      console.log(`Error splitting to roomOccupants: \n ${error}\nroomName: ${roomName}\nroomOccupants: ${roomOccupants}`);
+      error(`Error splitting to roomOccupants: \n ${error}\nroomName: ${roomName}\nroomOccupants: ${roomOccupants}`);
     }
     //making sure that the username associated with the session of the connected socket matches the username in the room name
     if (roomOccupants.includes(socket.handshake.query.username)) {
@@ -871,7 +893,7 @@ io.on('connection', async (socket) => {
         roomId = correctRoomName;
       } else {
         //warning about someone advanced enough to attempt to connect with socket and spoofed username
-        console.log(`REPORT: \n user logged in as ${username} tried to join DM room ${roomName} with query parameter ${socket.handshake.query.username}`);
+        error(`REPORT: \n user logged in as ${username} tried to join DM room ${roomName} with query parameter ${socket.handshake.query.username}`);
         socket.emit('info', 'connection declined');
       }
     }
@@ -891,7 +913,7 @@ io.on('connection', async (socket) => {
     } else {
       const isPrivateRoom = await isPrivate(socket.handshake.query.roomId);
       if (isPrivateRoom) {
-        console.log("Someone tried that edge case where you could theoretically join a private room without authenticating haha");
+        log("Someone tried that edge case where you could theoretically join a private room without authenticating haha");
         socket.emit('info', 'Fuck off you filthy exploiter');
         socket.disconnect();
         return;
@@ -930,7 +952,7 @@ io.on('connection', async (socket) => {
 
 
   socket.on('disconnect', async () => {
-    console.log('A user disconnected: ' + socket.handshake.session.username);
+    log('A user disconnected: ' + socket.handshake.session.username);
     
   });
 
@@ -963,7 +985,7 @@ io.on('connection', async (socket) => {
       return;
     }
     if ((lastTimeSent ? Date.now() - lastTimeSent : 2000) <= messageCooldown) {
-      console.log('exited');
+      //log('exited');
       lastTimeSent = Date.now();
       return;
     }
@@ -1027,7 +1049,7 @@ io.on('connection', async (socket) => {
 
         // Record the encrypted message for group chats
         const recorded = await recordMessage(data.roomId, prefix + messageData.sender, null, encryptedMessage);
-        console.log(recorded);
+        //log(recorded);
 
       }
 
@@ -1066,6 +1088,7 @@ server.listen(PORT, async () => {
   //let result = await executeSQL("INSERT INTO messages (`from`, `to`, content, roomId) VALUES ('posydon', NULL, '!MESSAGE!', 'cffe3c94-56a6-4552-9817-d5e655754413');");
   //let result = 1
   //console.log(result);
-  console.log(`Server is running on port ${PORT}`);
+  log(`Server is running on port ${PORT}`);
   //getMessagesFromRoom('cffe3c94-56a6-4552-9817-d5e655754413');
+  //error('trap')
 });
