@@ -1088,7 +1088,7 @@ server.listen(PORT, async () => {
   //let result = await executeSQL("INSERT INTO messages (`from`, `to`, content, roomId) VALUES ('posydon', NULL, '!MESSAGE!', 'cffe3c94-56a6-4552-9817-d5e655754413');");
   //let result = 1
   //console.log(result);
+  updateRoomMap();
+  updateUserMap();
   log(`Server is running on port ${PORT}`);
-  //getMessagesFromRoom('cffe3c94-56a6-4552-9817-d5e655754413');
-  //error('trap')
 });
