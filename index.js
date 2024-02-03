@@ -174,7 +174,7 @@ async function addUser(username, password, theme) {
 }
 
 async function removeRoom(roomId) {
-  log(`Removing room with id ${roomId}`); ////////////////////////////////////////////////////////////////////////////////
+  log(`Removing room with id ${roomId}`);
   let response = await executeSQL(`DELETE FROM rooms WHERE id="${roomId}"`);
   let response2 = await executeSQL(`DELETE FROM messages WHERE roomId="${roomId}"`);
   return response, response2;
@@ -382,7 +382,7 @@ function hasInvalidCharacters(inputString) {
   // return !characterList.test(inputString);
 
   const characterList = new RegExp(`[^${validCharacters}]`, "g");
-  return !characterList.test(inputString);
+  return characterList.test(inputString);
 }
 
 // Set up session middleware and other resources

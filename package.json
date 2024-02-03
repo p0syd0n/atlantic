@@ -1,7 +1,7 @@
 {
   "start": "node .",
   "private": true,
-  "version": "1.2.2",
+  "version": "1.2.3",
   "name": "atlantic",
   "type": "module",
   "dependencies": {
