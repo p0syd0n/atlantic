@@ -28,7 +28,6 @@ const secretKey = Buffer.from(process.env.ENCRYPT_KEY, 'hex');
 const legalDocuments = ['legal_1.md', 'legal_2.md', 'legal_3.md'];
 const PORT = process.env.PORT;
 const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&():,./?~|1234567890';
-//make sure to change hasInvalidCharacters() function as well^^^
 const messageCooldown = 1.5/*<-- seconds*/ * 1000;
 const version = pkg.version;
 
@@ -379,7 +378,10 @@ function findNotificationManagerSocket(io, username) {
 }
 
 function hasInvalidCharacters(inputString) {
-  const characterList = /[qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&():,./?~|1234567890]/;
+  // const characterList = /[qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&():,./?~|1234567890]/;
+  // return !characterList.test(inputString);
+
+  const characterList = new RegExp(`[^${validCharacters}]`, "g");
   return !characterList.test(inputString);
 }
 
