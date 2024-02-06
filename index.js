@@ -27,7 +27,7 @@ const iv = Buffer.from(process.env.IV, 'hex');
 const secretKey = Buffer.from(process.env.ENCRYPT_KEY, 'hex');
 const legalDocuments = ['legal_1.md', 'legal_2.md', 'legal_3.md'];
 const PORT = process.env.PORT;
-const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&():,./?~|1234567890';
+const validCharacters = 'qwertyuiopaqsdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM!@#$%^&():,./?~|1234567890 ';
 const messageCooldown = 1.5/*<-- seconds*/ * 1000;
 const version = pkg.version;
 
